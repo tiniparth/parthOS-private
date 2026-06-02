@@ -1,6 +1,6 @@
 /* Google Calendar (read-only). Shares the Google refresh token. */
 import { googleAccessToken } from "./google";
-import { todayISO } from "./memory";
+import { todayISO } from "./time";
 
 export interface CalEvent {
   summary: string;
@@ -53,4 +53,23 @@ export async function listUpcoming(daysAhead = 1): Promise<CalEvent[]> {
     }
     return { summary: e.summary || "(no title)", start: startRaw, time, allDay } as CalEvent;
   });
+}
+
+/** Create an event. startISO can carry an offset (e.g. ...+05:30). */
+export async function createEvent(summary: string, startISO: string, durationMin = 30): Promise<boolean> {
+  const token = await googleAccessToken();
+  if (!token) return false;
+  const start = new Date(startISO);
+  if (isNaN(start.getTime())) return false;
+  const end = new Date(start.getTime() + durationMin * 60000);
+  const res = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      summary,
+      start: { dateTime: start.toISOString(), timeZone: "Asia/Kolkata" },
+      end: { dateTime: end.toISOString(), timeZone: "Asia/Kolkata" },
+    }),
+  });
+  return res.ok;
 }

@@ -19,7 +19,7 @@ const SCHEMA = {
         properties: {
           type: {
             type: "string",
-            enum: ["create_task", "create_note", "remember_fact", "log_expense", "log_habit"],
+            enum: ["create_task", "create_note", "remember_fact", "log_expense", "log_habit", "create_event"],
           },
           title: { type: "string" },
           due_date: { type: "string" },
@@ -33,6 +33,9 @@ const SCHEMA = {
           spent_on: { type: "string" },
           habit: { type: "string" },
           done_on: { type: "string" },
+          summary: { type: "string" },
+          when: { type: "string" },
+          duration_min: { type: "number" },
         },
         required: ["type"],
       },
@@ -110,6 +113,7 @@ YOUR JOB on each message:
    - "remember_fact" for durable facts about Parth, his work, people (e.g. Siddharth), or preferences worth remembering long-term. One sentence. Do NOT store one-off tasks as facts.
    - "log_expense" when Parth reports money spent. Extract a numeric "amount" (assume INR unless stated), a short "item" (e.g. "lunch"), and a "category" (food/travel/work/personal/etc). Resolve the date to "spent_on" (YYYY-MM-DD, default today). One message can contain multiple expenses → emit one log_expense each.
    - "log_habit" when Parth reports doing a habit. "habit" must be one of: running, reading, yoga, journalling (map "ran"→running, "read"→reading, "did yoga"→yoga, "journaled"→journalling). "done_on" = YYYY-MM-DD (default today).
+   - "create_event" when Parth wants something ON his calendar ("block/schedule/set up a meeting/call at <time>"). "summary" = short title, "when" = full ISO datetime WITH IST offset e.g. "2026-06-03T15:00:00+05:30" (resolve "3pm tomorrow" against today's date), "duration_min" = minutes (default 30). Use create_event for calendar blocking; use create_task for to-dos without a fixed time.
    - You may emit multiple actions from one message, or none (e.g. if he just asks a question). Use the SPENDING and HABITS context below to answer questions like "what did I spend this week?" or "did I run enough?".
 3. Write a short, friendly "reply" confirming what you did or answering him — 1-3 sentences, no markdown headers, no rambling. Use his open tasks / facts to answer questions about himself or his work.
 

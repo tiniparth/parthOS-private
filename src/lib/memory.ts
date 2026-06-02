@@ -2,7 +2,11 @@
    executes the actions the brain returns. All DB access is server-side. */
 import { db } from "./supabase";
 import { env } from "./env";
+import { todayISO } from "./time";
+import { createEvent } from "./calendar";
 import type { Action } from "./types";
+
+export { todayISO };
 
 export interface Context {
   profile: string;
@@ -12,11 +16,6 @@ export interface Context {
   habitLogs: { habit: string; done_on: string }[];
   today: string; // IST date YYYY-MM-DD
   model: string;
-}
-
-/** Today's date in the assistant's timezone, as YYYY-MM-DD. */
-export function todayISO(): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: env.tz() }).format(new Date());
 }
 
 function daysAgoISO(iso: string, n: number): string {
@@ -102,6 +101,11 @@ export async function executeActions(actions: Action[]): Promise<string[]> {
       if (a.done_on) row.done_on = a.done_on;
       await sb.from("habit_logs").insert(row);
       done.push(`habit: ${habit}`);
+    } else if (a.type === "create_event") {
+      const summary = a.summary || a.title || "(event)";
+      if (!a.when) continue;
+      const ok = await createEvent(cap(String(summary), 200), String(a.when), Number(a.duration_min) || 30);
+      done.push(ok ? `event: ${summary}` : "event (calendar not connected?)");
     }
   }
   return done;

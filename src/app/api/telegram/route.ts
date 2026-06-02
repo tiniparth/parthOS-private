@@ -7,6 +7,8 @@ import { GeminiRateLimitError } from "@/lib/brain/gemini";
 import { logCapture, executeActions } from "@/lib/memory";
 import { setSetting, getActiveModel, MODELS } from "@/lib/settings";
 import { isGmailConnected, triageInbox } from "@/lib/gmail";
+import { googleConnected } from "@/lib/google";
+import { searchFiles } from "@/lib/drive";
 import type { BrainInput } from "@/lib/types";
 
 /** Handle brain-switch commands. Returns true if the message was a command. */
@@ -41,6 +43,16 @@ async function handleCommand(text: string, chatId: number): Promise<boolean> {
     }
     const lines = high.map((m) => `• ${m.subject}\n   ${m.from.replace(/<.*>/, "").trim()}${m.needs_reply ? " · ↩️ reply" : ""}\n   ${m.why}`);
     await sendMessage(chatId, `📨 ${high.length} need attention:\n\n${lines.join("\n\n")}`);
+    return true;
+  }
+  if (cmd.startsWith("/find ") || cmd.startsWith("/find\n")) {
+    const q = text.trim().slice(5).trim();
+    if (!q) { await sendMessage(chatId, "Usage: /find <what to search for in your Drive>"); return true; }
+    if (!(await googleConnected())) { await sendMessage(chatId, "Connect Google first (dashboard → Mail → Connect)."); return true; }
+    const files = await searchFiles(q, 8);
+    if (!files.length) { await sendMessage(chatId, `No Drive files match "${q}".`); return true; }
+    const lines = files.map((f) => `• ${f.name}\n   ${f.link}`);
+    await sendMessage(chatId, `📁 Found ${files.length} for "${q}":\n\n${lines.join("\n\n")}`);
     return true;
   }
   return false;

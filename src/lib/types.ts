@@ -6,7 +6,8 @@ export type Action =
   | { type: "create_note"; content: string; tags?: string[] | null }
   | { type: "remember_fact"; category?: string | null; fact: string }
   | { type: "log_expense"; amount: number; item?: string | null; category?: string | null; spent_on?: string | null }
-  | { type: "log_habit"; habit: string; done_on?: string | null };
+  | { type: "log_habit"; habit: string; done_on?: string | null }
+  | { type: "create_event"; summary: string; when: string; duration_min?: number | null };
 
 export interface BrainResult {
   reply: string;

@@ -15,7 +15,13 @@ export async function GET(req: NextRequest) {
     client_id: env.googleClientId(),
     redirect_uri: env.googleRedirectUri(),
     response_type: "code",
-    scope: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.readonly",
+    scope: [
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/calendar.events", // read + create/move events
+      "https://www.googleapis.com/auth/drive.readonly",
+      "https://www.googleapis.com/auth/documents.readonly",
+      "https://www.googleapis.com/auth/spreadsheets", // read + write sheets
+    ].join(" "),
     access_type: "offline",
     prompt: "consent", // force a refresh_token on every connect
     state,

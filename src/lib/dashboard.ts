@@ -1,6 +1,6 @@
 /* Read model for the web dashboard. Server-side only. */
 import { db } from "./supabase";
-import { todayISO } from "./memory";
+import { todayISO } from "./time";
 
 export interface DashboardData {
   today: string;
