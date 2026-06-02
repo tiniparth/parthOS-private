@@ -4,6 +4,8 @@
 import { generateJSON } from "./groq";
 import type { GeminiPart } from "./gemini";
 import { loadContext } from "../memory";
+import { googleConnected } from "../google";
+import { listUpcoming } from "../calendar";
 import { env } from "../env";
 import type { BrainInput, BrainResult } from "../types";
 
@@ -129,7 +131,24 @@ CRITICAL OUTPUT RULES: Every field is at most one short sentence. NEVER repeat w
 
 export async function think(input: BrainInput): Promise<BrainResult> {
   const ctx = await loadContext();
-  const system = buildSystemPrompt(ctx);
+
+  // Give the brain Parth's actual calendar (today + tomorrow) so it can answer
+  // "what's my schedule?" / avoid double-booking when creating events.
+  let scheduleBlock = "";
+  try {
+    if (await googleConnected()) {
+      const events = await listUpcoming(1);
+      scheduleBlock = events.length
+        ? events.map((e) => `- ${e.start.slice(0, 10)} ${e.allDay ? "all day" : e.time} — ${e.summary}`).join("\n")
+        : "(no events today or tomorrow)";
+    }
+  } catch (e) {
+    console.error("brain calendar fetch failed:", e);
+  }
+
+  const system =
+    buildSystemPrompt(ctx) +
+    (scheduleBlock ? `\n\nPARTH'S CALENDAR (today & tomorrow):\n${scheduleBlock}` : "");
 
   const parts: GeminiPart[] = [];
   if (input.audio) {
