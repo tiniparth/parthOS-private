@@ -6,6 +6,7 @@ import { think } from "@/lib/brain";
 import { GeminiRateLimitError } from "@/lib/brain/gemini";
 import { logCapture, executeActions } from "@/lib/memory";
 import { setSetting, getActiveModel, MODELS } from "@/lib/settings";
+import { isGmailConnected, triageInbox } from "@/lib/gmail";
 import type { BrainInput } from "@/lib/types";
 
 /** Handle brain-switch commands. Returns true if the message was a command. */
@@ -25,6 +26,21 @@ async function handleCommand(text: string, chatId: number): Promise<boolean> {
     const m = await getActiveModel();
     const label = m === MODELS.smart ? "🧠 smart (flash)" : "⚡ fast (flash-lite)";
     await sendMessage(chatId, `Current brain: ${label}\n${m}\n\n/smart = meaty tasks · /fast = daily driver`);
+    return true;
+  }
+  if (cmd === "/inbox" || cmd === "/mail") {
+    if (!(await isGmailConnected())) {
+      await sendMessage(chatId, "Gmail isn't connected yet. Open the dashboard → Mail → Connect Gmail.");
+      return true;
+    }
+    const mail = await triageInbox();
+    const high = mail.filter((m) => m.importance === "high");
+    if (!high.length) {
+      await sendMessage(chatId, "📭 Nothing urgent in your inbox right now.");
+      return true;
+    }
+    const lines = high.map((m) => `• ${m.subject}\n   ${m.from.replace(/<.*>/, "").trim()}${m.needs_reply ? " · ↩️ reply" : ""}\n   ${m.why}`);
+    await sendMessage(chatId, `📨 ${high.length} need attention:\n\n${lines.join("\n\n")}`);
     return true;
   }
   return false;

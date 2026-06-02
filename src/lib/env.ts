@@ -17,5 +17,8 @@ export const env = {
   supabaseSecret: () => req("SUPABASE_SECRET_KEY"),
   cronSecret: () => req("CRON_SECRET"),
   dashboardPasscode: () => req("DASHBOARD_PASSCODE"),
+  googleClientId: () => req("GOOGLE_CLIENT_ID"),
+  googleClientSecret: () => req("GOOGLE_CLIENT_SECRET"),
+  googleRedirectUri: () => process.env.GOOGLE_REDIRECT_URI || "https://parth-os-liard.vercel.app/api/google/callback",
   tz: () => process.env.ASSISTANT_TZ || "Asia/Kolkata",
 };

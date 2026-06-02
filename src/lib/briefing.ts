@@ -2,11 +2,25 @@
    warm, personalized phrasing; falls back to a plain format if that fails. */
 import { loadContext } from "./memory";
 import { generateJSON } from "./brain/gemini";
+import { isGmailConnected, triageInbox } from "./gmail";
 
 const TRACKED_HABITS = ["running", "reading", "yoga", "journalling"];
 
 export async function buildBriefing(): Promise<string> {
   const ctx = await loadContext();
+
+  // Email digest (only if connected).
+  let mailLine = "(not connected)";
+  try {
+    if (await isGmailConnected()) {
+      const high = (await triageInbox()).filter((m) => m.importance === "high");
+      mailLine = high.length
+        ? `${high.length} need attention — ${high.slice(0, 3).map((m) => m.subject).join("; ")}`
+        : "nothing urgent";
+    }
+  } catch (e) {
+    console.error("briefing mail failed:", e);
+  }
 
   const dueToday = ctx.openTasks.filter((t) => t.due_date && t.due_date <= ctx.today);
   const otherTasks = ctx.openTasks.filter((t) => !(t.due_date && t.due_date <= ctx.today));
@@ -23,7 +37,8 @@ Tasks due/overdue: ${dueToday.map((t) => `${t.title}${t.due_date ? ` (${t.due_da
 Other open tasks: ${otherTasks.slice(0, 6).map((t) => t.title).join("; ") || "none"}
 Habits done in last 7 days: ${[...doneHabits].join(", ") || "none"}
 Tracked habits not done recently (nudge these): ${missingHabits.join(", ") || "all on track"}
-Spend so far this month: INR ${spendTotal}`;
+Spend so far this month: INR ${spendTotal}
+Inbox: ${mailLine}`;
 
   // Warm phrasing via the brain.
   try {
@@ -41,5 +56,6 @@ Spend so far this month: INR ${spendTotal}`;
   lines.push(`✅ Open tasks: ${ctx.openTasks.length}`);
   if (missingHabits.length) lines.push(`🏃 Habit nudge: ${missingHabits.join(", ")}`);
   lines.push(`💸 Spent this month: ₹${spendTotal}`);
+  if (mailLine !== "(not connected)") lines.push(`📨 Inbox: ${mailLine}`);
   return lines.join("\n");
 }
