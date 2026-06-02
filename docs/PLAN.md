@@ -86,16 +86,18 @@ anything I have to open the PC and manually file it. **Parth OS fixes this with 
 - [ ] **Run schema.sql in Supabase** ← current step
 - ✅ _Check: app builds (done); DB tables exist (pending schema run)._
 
-### Phase 2 — Telegram pipe (echo)
-- [ ] `/api/telegram` webhook: verify secret, allowlist chat_id, reply "got it ✅"
-- [ ] Register webhook with Telegram
-- ✅ _Check: text my bot from my phone → it replies._
+### Phase 2 — Telegram pipe (echo) ✅ DONE
+- [x] `/api/telegram` webhook: verify secret, allowlist chat_id (locked to 8675527310)
+- [x] Deployed to Vercel (prod URL: parth-os-liard.vercel.app) + webhook registered
+- [x] _Verified: bot replied with chat id ✅_
 
-### Phase 3 — Brain + capture (the core)
-- [ ] Gemini integration behind `lib/brain` (swappable)
-- [ ] Intent routing: task vs note vs question vs (later) expense/habit
-- [ ] Voice notes: download from Telegram → Gemini → transcript → same pipeline
-- [ ] Write to `tasks`/`notes`; load `profile`+`memory_facts` into every call
+### Phase 3 — Brain + capture (the core) ✅ BUILT (awaiting Parth's live test)
+- [x] Gemini integration behind `lib/brain` (swappable) — structured JSON output
+- [x] Intent routing: task / note / fact via structured actions
+- [x] Voice notes: download OGG from Telegram → Gemini transcribes + acts
+- [x] Writes to `tasks`/`notes`/`memory_facts`; loads `profile`+facts+open tasks each call
+- [x] Smoke-tested: date resolution + action extraction confirmed
+- [ ] **Parth's live test from phone** ← current step
 - ✅ _Check: voice note "remind me to send Siddharth the deck Friday" → task created, smart reply._
 
 ### Phase 4 — Memory ("never re-explain")
