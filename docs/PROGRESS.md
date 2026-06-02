@@ -56,3 +56,8 @@ _Chronological record of what was actually built/changed. Newest first. See [PRD
 - Passcode-protected dashboard at `/dashboard` (login at `/login`; `DASHBOARD_PASSCODE` env; sha256 in httpOnly cookie, 30-day). Auth flow verified (no-cookie→redirect, wrong→401, correct→200).
 - Shows: tasks (with mark-done toggle via `/api/tasks/done`), expenses (month total + by category + list), habits (last-7-day counts), recent notes, learned facts + full profile.
 - Files: `lib/auth.ts`, `lib/dashboard.ts`, `app/login`, `app/dashboard`, `app/api/login`, `app/api/tasks/done`.
+
+**Dashboard upgraded to full CRUD (Parth: "make it meaty / depth")**
+- Generic CRUD API `app/api/crud/[table]` (auth + table/column allowlist) handles GET/POST/PATCH/DELETE for tasks, expenses, habit_logs, notes, memory_facts, profile.
+- Reusable `CrudTable` client component (add/inline-edit/delete) + dashboard `layout.tsx` with section nav (Overview, Tasks, Expenses, Habits, Notes, Memory) + logout.
+- Per-section pages + `ProfileEditor` (edit the "Who is Parth" doc from the web). Verified full create→update→delete cycle + 401 without auth.

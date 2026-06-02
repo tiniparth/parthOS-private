@@ -8,15 +8,14 @@ Last updated: 2026-06-02
 ---
 
 ## 🔴 In progress
-- [~] Parth's daily real-world use of the MVP (text/voice capture, expenses, habits, briefing)
+- [~] Connect Gmail (parth@letsworkwise.com) — scoping + Google Cloud OAuth setup
+- [~] Parth's daily real-world use of the MVP
 
 ## 🟡 Up next
 - [ ] Phase 6 polish: `/tasks` list + mark-done from chat, cleaner reply formatting
-- [ ] Expense categories (model often leaves category null) + currency handling
 - [ ] Confirm the 7am cron actually fires tomorrow morning
 
 ## 🟢 Backlog (post-MVP)
-- [ ] Gmail integration (triage, draft replies, summarize)
 - [ ] Google Calendar (create/read events from chat)
 - [ ] Granola meeting-notes integration
 - [ ] Proactive follow-ups ("you owed Siddharth X")
