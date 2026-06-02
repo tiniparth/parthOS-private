@@ -8,12 +8,17 @@ Last updated: 2026-06-02
 ---
 
 ## 🔴 In progress
-- [~] Connect Gmail (parth@letsworkwise.com) — scoping + Google Cloud OAuth setup
+- [~] Connect Google Calendar — enable Calendar API + reconnect to grant scope
 - [~] Parth's daily real-world use of the MVP
+
+## ⭐ Known polish areas (dedicated passes later — flagged by Parth)
+- [ ] **Memory + triage quality** — the whole memory model + email triage ranking need real tuning (not a quick patch). Currently triage is a first cut.
+- [ ] **Dashboard visual polish** — design system is in; still needs refinement.
 
 ## 🟡 Up next
 - [ ] Phase 6 polish: `/tasks` list + mark-done from chat, cleaner reply formatting
 - [ ] Confirm the 7am cron actually fires tomorrow morning
+- [ ] Calendar: create/edit events (currently read-only)
 
 ## 🟢 Backlog (post-MVP)
 - [ ] Google Calendar (create/read events from chat)
