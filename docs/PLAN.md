@@ -101,8 +101,9 @@ anything I have to open the PC and manually file it. **Parth OS fixes this with 
 - ✅ _Check: voice note "remind me to send Siddharth the deck Friday" → task created, smart reply._
 
 ### Phase 4 — Memory ("never re-explain")
-- [ ] Seed `profile` with who-is-Parth
-- [ ] Commands to view/add/update memory from the phone
+- [x] Seed `profile` with who-is-Parth (sourced from Workwise Brain + existing session memory; sensitive items excluded per Parth)
+- [ ] Commands to view/add/update memory from the phone (later polish)
+- [ ] **Parth's live test: "what do you know about me?"** ← current step
 - ✅ _Check: ask "what do you know about me?" → accurate; it uses context in replies._
 
 ### Phase 5 — Daily briefing
