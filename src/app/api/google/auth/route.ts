@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     client_id: env.googleClientId(),
     redirect_uri: env.googleRedirectUri(),
     response_type: "code",
-    scope: "https://www.googleapis.com/auth/gmail.readonly",
+    scope: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.readonly",
     access_type: "offline",
     prompt: "consent", // force a refresh_token on every connect
     state,
