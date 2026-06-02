@@ -28,6 +28,11 @@ Two rules: (1) Force a yes/no — don't let deals go silent. (2) Don't widen whi
 - Sterling & Wilson (EPC tendering) — unstarted; don't begin before Empower closes.
 - Key people: founder Siddharth Kothari; Empower MD Dr. Jamal; Bliss Ankit / Satish Ji.
 
+### Career history (companies & roles)
+1. Zoplar (Savdo Technologies) — Associate Product Manager — Oct 2023 → Apr 2025. **My first full-time job.** Flagship win: self-taught digital marketing and drove ROAS from 5 → 25.
+2. aiqahealth (Hospido) — Project Manager, Growth — Apr 2025 → Oct 2025.
+3. Workwise — Growth / founding member — Nov 2025 → present (current).
+
 ## Goal — ISB MBA
 - Targeting ISB's flagship 1-year PGP, likely Class of 2028 (R1, ~Sep 2027) for work-ex runway.
 - GMAT not attempted yet — the single biggest lever. Target 705+ (Focus). Prep time is tight (~5–6 hrs/week).
