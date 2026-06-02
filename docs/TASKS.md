@@ -8,7 +8,6 @@ Last updated: 2026-06-02
 ---
 
 ## 🔴 In progress
-- [~] Connect Google Calendar — enable Calendar API + reconnect to grant scope
 - [~] Parth's daily real-world use of the MVP
 
 ## ⭐ Known polish areas (dedicated passes later — flagged by Parth)
@@ -42,4 +41,7 @@ Last updated: 2026-06-02
 - [x] Habit tracking (log_habit + 7-day summary)
 - [x] Phase 5 — daily briefing (Vercel Cron 07:00 IST; verified via manual trigger)
 - [x] Web dashboard (passcode-protected): tasks+mark-done, expenses, habits, notes, memory
+- [x] Full-CRUD dashboard + daily command-center overview (calendar + inbox + inline CRUD)
+- [x] Gmail (read-only) connected + contextual triage (Mail page, /inbox, briefing)
+- [x] Google Calendar (read-only) connected — today/tomorrow on overview
 - [x] Set up docs system (PRD, PROGRESS, TASKS)
