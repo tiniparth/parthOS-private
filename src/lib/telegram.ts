@@ -34,3 +34,24 @@ export async function sendTyping(chatId: number | string) {
     body: JSON.stringify({ chat_id: chatId, action: "typing" }),
   }).catch(() => {});
 }
+
+/** Download a Telegram file (e.g. a voice note) and return it base64-encoded.
+    Telegram voice notes are OGG/Opus. */
+export async function downloadFileAsBase64(
+  fileId: string
+): Promise<{ base64: string; mime: string } | null> {
+  const metaRes = await fetch(api("getFile"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ file_id: fileId }),
+  });
+  const meta = await metaRes.json();
+  if (!meta.ok) return null;
+
+  const fileUrl = `https://api.telegram.org/file/bot${env.telegramToken()}/${meta.result.file_path}`;
+  const fileRes = await fetch(fileUrl);
+  if (!fileRes.ok) return null;
+
+  const buf = Buffer.from(await fileRes.arrayBuffer());
+  return { base64: buf.toString("base64"), mime: "audio/ogg" };
+}

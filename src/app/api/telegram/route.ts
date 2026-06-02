@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
-import { sendMessage } from "@/lib/telegram";
+import { sendMessage, sendTyping, downloadFileAsBase64 } from "@/lib/telegram";
+import { think } from "@/lib/brain";
+import { logCapture, executeActions } from "@/lib/memory";
+import type { BrainInput } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 /** Telegram webhook. Telegram POSTs every incoming message here. */
 export async function POST(req: NextRequest) {
-  // 1. Verify the request really came from Telegram (secret token header).
+  // 1. Verify the request really came from Telegram.
   const secret = req.headers.get("x-telegram-bot-api-secret-token");
   if (secret !== env.webhookSecret()) {
     return NextResponse.json({ ok: false }, { status: 401 });
@@ -16,14 +20,11 @@ export async function POST(req: NextRequest) {
   const update = await req.json().catch(() => null);
   const msg = update?.message;
   const chatId: number | undefined = msg?.chat?.id;
-  const text: string = msg?.text ?? "";
-
-  // Ignore anything that isn't a normal message (edits, joins, etc.)
   if (!chatId) return NextResponse.json({ ok: true });
 
   const allowed = env.allowedChatId();
 
-  // Bootstrap: no allowlist configured yet → reveal the chat id so we can lock it.
+  // Bootstrap: no allowlist yet → reveal chat id.
   if (!allowed) {
     await sendMessage(
       chatId,
@@ -32,13 +33,45 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  // Enforce allowlist: silently ignore anyone who isn't Parth.
+  // Enforce allowlist: silently ignore strangers.
   if (String(chatId) !== String(allowed)) {
     return NextResponse.json({ ok: true });
   }
 
-  // Phase 2 behaviour: echo. (Phase 3 swaps this for the brain.)
-  await sendMessage(chatId, `got it ✅: ${text}`);
+  const text: string = msg?.text ?? msg?.caption ?? "";
+  const voice = msg?.voice ?? msg?.audio;
+
+  try {
+    await sendTyping(chatId);
+
+    // Build brain input (text or voice).
+    let input: BrainInput;
+    if (voice?.file_id) {
+      const audio = await downloadFileAsBase64(voice.file_id);
+      if (!audio) {
+        await sendMessage(chatId, "Hmm, I couldn't fetch that voice note. Mind trying again?");
+        return NextResponse.json({ ok: true });
+      }
+      input = { audio, text };
+    } else if (text) {
+      input = { text };
+    } else {
+      await sendMessage(chatId, "I can handle text or voice notes right now. 🙂");
+      return NextResponse.json({ ok: true });
+    }
+
+    const result = await think(input);
+
+    // Persist: log the raw capture, then run the actions.
+    await logCapture(voice ? "voice" : "text", result.transcript || text, update);
+    await executeActions(result.actions);
+
+    await sendMessage(chatId, result.reply);
+  } catch (err) {
+    console.error("webhook error:", err);
+    await sendMessage(chatId, "Something went wrong on my end 😕 — try again in a moment.");
+  }
+
   return NextResponse.json({ ok: true });
 }
 
