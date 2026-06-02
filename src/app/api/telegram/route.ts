@@ -10,6 +10,8 @@ import { isGmailConnected, triageInbox } from "@/lib/gmail";
 import { googleConnected } from "@/lib/google";
 import { searchFiles } from "@/lib/drive";
 import { transcribe } from "@/lib/voice";
+import { generateDoc } from "@/lib/docgen";
+import { createDoc } from "@/lib/docs";
 
 /** Handle brain-switch commands. Returns true if the message was a command. */
 async function handleCommand(text: string, chatId: number): Promise<boolean> {
@@ -53,6 +55,22 @@ async function handleCommand(text: string, chatId: number): Promise<boolean> {
     if (!files.length) { await sendMessage(chatId, `No Drive files match "${q}".`); return true; }
     const lines = files.map((f) => `• ${f.name}\n   ${f.link}`);
     await sendMessage(chatId, `📁 Found ${files.length} for "${q}":\n\n${lines.join("\n\n")}`);
+    return true;
+  }
+  if (cmd.startsWith("/doc")) {
+    const topic = text.trim().replace(/^\/doc\s*/i, "").trim();
+    if (!topic) { await sendMessage(chatId, "Usage: /doc <topic> — e.g. /doc company profile of Sterling & Wilson"); return true; }
+    if (!(await googleConnected())) { await sendMessage(chatId, "Connect Google first (dashboard → Mail → Connect)."); return true; }
+    await sendMessage(chatId, "📝 Drafting your doc… (~20–40s)");
+    try {
+      const { title, html } = await generateDoc(topic);
+      const link = await createDoc(title, html);
+      if (link) await sendMessage(chatId, `✅ ${title}\n${link}`);
+      else await sendMessage(chatId, "I drafted it but couldn't create the Google Doc — you may need to grant doc-write access (dashboard → Mail → Reconnect).");
+    } catch (e) {
+      console.error("/doc error:", e);
+      await sendMessage(chatId, "Couldn't generate that doc — try again in a moment.");
+    }
     return true;
   }
   return false;
