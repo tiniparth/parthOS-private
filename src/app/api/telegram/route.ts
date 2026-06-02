@@ -5,7 +5,30 @@ import { sendMessage, sendTyping, downloadFileAsBase64 } from "@/lib/telegram";
 import { think } from "@/lib/brain";
 import { GeminiRateLimitError } from "@/lib/brain/gemini";
 import { logCapture, executeActions } from "@/lib/memory";
+import { setSetting, getActiveModel, MODELS } from "@/lib/settings";
 import type { BrainInput } from "@/lib/types";
+
+/** Handle brain-switch commands. Returns true if the message was a command. */
+async function handleCommand(text: string, chatId: number): Promise<boolean> {
+  const cmd = text.trim().toLowerCase();
+  if (cmd === "/smart" || cmd === "/model flash") {
+    await setSetting("model", MODELS.smart);
+    await sendMessage(chatId, "🧠 Smart brain ON (gemini-2.5-flash, ~20 msgs/day). Use it for meaty stuff — send /fast to switch back.");
+    return true;
+  }
+  if (cmd === "/fast" || cmd === "/model lite") {
+    await setSetting("model", MODELS.fast);
+    await sendMessage(chatId, "⚡ Fast brain ON (gemini-2.5-flash-lite, ~1000/day). Your daily driver.");
+    return true;
+  }
+  if (cmd === "/model") {
+    const m = await getActiveModel();
+    const label = m === MODELS.smart ? "🧠 smart (flash)" : "⚡ fast (flash-lite)";
+    await sendMessage(chatId, `Current brain: ${label}\n${m}\n\n/smart = meaty tasks · /fast = daily driver`);
+    return true;
+  }
+  return false;
+}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,6 +77,9 @@ async function handleMessage(update: unknown, msg: any, chatId: number) {
   const voice = msg?.voice ?? msg?.audio;
 
   try {
+    // Brain-switch commands are handled instantly (no Gemini call, no quota spent).
+    if (text && (await handleCommand(text, chatId))) return;
+
     await sendTyping(chatId);
 
     let input: BrainInput;

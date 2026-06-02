@@ -8,7 +8,8 @@ Last updated: 2026-06-02
 ---
 
 ## 🔴 In progress
-- [~] Phase 3+4 live verification — Parth tests text + voice from phone after rate-limit/runaway fixes
+- [~] Run `settings` table SQL (Parth) → enables persistent /smart /fast brain switching
+- [~] Phase 3+4 live verification — Parth tests text + voice from phone (reliability fixes confirmed via simulated tests)
 
 ## 🟡 Up next
 - [ ] **Phase 5 — Daily briefing**: `/api/cron/briefing` + Vercel Cron (7am IST) → today's tasks + nudges to Telegram
@@ -34,4 +35,6 @@ Last updated: 2026-06-02
 - [x] Phase 4 — seeded "Who is Parth" profile into memory
 - [x] Fix: webhook 504s → instant 200 + `after()` background processing
 - [x] Fix: Gemini 429 rate-limit handling + runaway-generation guard
+- [x] Fix: free-tier model quotas — switched default to flash-lite; regenerate-on-truncation for reliable JSON
+- [x] Switchable brain: /smart (flash) · /fast (flash-lite) · /model (code shipped; needs settings SQL)
 - [x] Set up docs system (PRD, PROGRESS, TASKS)

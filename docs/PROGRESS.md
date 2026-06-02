@@ -40,4 +40,9 @@ _Chronological record of what was actually built/changed. Newest first. See [PRD
 - Fix: parse Google's requested retry delay and honour it (cap 12s), within the `after()` budget. Confirmed the bot processes successfully when the per-minute window has room.
 - Note for daily use: a single user sending one message at a time stays well under 20/min. If bursts ever matter, upgrade the brain to a paid tier (no tight RPM) — already in backlog.
 
+**Brain reliability + switchable model (Parth's request)**
+- Discovered free-tier per-model quotas on this project: `gemini-2.5-flash` = **20/day** (too low), `gemini-2.0-flash` = **0** (no free quota), `gemini-2.5-flash-lite` = **~1000/day** (viable). flash-lite chosen as default daily driver.
+- flash-lite intermittently looped a field past the token cap → truncated JSON (esp. emotive phrasings like "Pandit Sir"). Fixes: bump output cap to 4096, **regenerate on parse failure** (stochastic loop usually clears), salvage the reply as last resort, and a hard "no rambling about people" prompt rule. Verified: the previously-breaking message now creates a clean task.
+- **Switchable brain** (Parth's idea): `settings` table + Telegram commands `/smart` (gemini-2.5-flash, ~20/day, meaty tasks), `/fast` (flash-lite, daily driver), `/model` (show current). Brain reads the active model per message; default flash-lite. Commands handled instantly (no quota spent). _Requires the `settings` table SQL to be run for the choice to persist._
+
 **Next:** Phase 5 — daily briefing (Vercel Cron).

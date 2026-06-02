@@ -50,6 +50,13 @@ create table if not exists notes (
   created_at  timestamptz not null default now()
 );
 
+-- Key/value settings (e.g. which Gemini model is active — the switchable brain).
+create table if not exists settings (
+  key         text primary key,
+  value       text,
+  updated_at  timestamptz not null default now()
+);
+
 -- Security: enable RLS with NO policies. The anon/publishable key is then
 -- blocked from every table; our server uses the service_role key, which
 -- bypasses RLS. So nothing is publicly readable.
@@ -58,3 +65,4 @@ alter table memory_facts enable row level security;
 alter table captures     enable row level security;
 alter table tasks        enable row level security;
 alter table notes        enable row level security;
+alter table settings     enable row level security;
