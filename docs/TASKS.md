@@ -11,7 +11,7 @@ Last updated: 2026-06-02
 - [~] Parth's daily real-world use of the MVP
 
 ## ⭐ Known polish areas (dedicated passes later — flagged by Parth)
-- [ ] **Memory + triage quality** — the whole memory model + email triage ranking need real tuning (not a quick patch). Currently triage is a first cut.
+- [ ] **Memory + triage + context quality** — the whole memory model, email triage ranking, AND Drive `/find` search relevance all need real tuning (not a quick patch). They share the same root: how well the OS understands Parth's context. Currently first-cut. `/find` works but relevance/ranking needs polish.
 - [ ] **Polish the dashboard to Parth's taste** — iterative look-and-feel pass *with Parth's eye*: layout, density, color/accent, what leads, the daily-first feel. Design system is in place; needs his direction to dial in the vibe (clean · minimal · founder clarity · runner agility).
 
 ## 🟡 Up next

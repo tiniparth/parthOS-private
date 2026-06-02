@@ -2,8 +2,12 @@
    Uses the stored refresh token to read recent mail, then asks the brain to
    rank importance using what it knows about Parth (clients, people). */
 import { googleAccessToken, googleConnected } from "./google";
+import { getSetting, setSetting } from "./settings";
 import { loadContext } from "./memory";
 import { generateJSON } from "./brain/gemini";
+
+const TRIAGE_CACHE_KEY = "triage_cache";
+const TRIAGE_TTL_MS = 10 * 60 * 1000; // 10 min — avoid a Gemini call on every page load
 
 export interface MailItem {
   id: string;
@@ -93,8 +97,21 @@ const TRIAGE_SCHEMA = {
   required: ["mail"],
 };
 
-/** Rank recent mail by importance using Parth's context. */
-export async function triageInbox(max = 18): Promise<TriagedMail[]> {
+/** Rank recent mail by importance using Parth's context.
+    Cached for 10 min so browsing the dashboard doesn't burn a Gemini call each load. */
+export async function triageInbox(max = 18, force = false): Promise<TriagedMail[]> {
+  if (!force) {
+    const cached = await getSetting(TRIAGE_CACHE_KEY);
+    if (cached) {
+      try {
+        const o = JSON.parse(cached);
+        if (o.at && Date.now() - o.at < TRIAGE_TTL_MS) return o.mail as TriagedMail[];
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
   const emails = await listRecent(max);
   if (emails.length === 0) return [];
 
@@ -118,5 +135,7 @@ LOW = marketing, newsletters, promotions, automated notifications, no-reply send
 For EACH email return: from, subject, importance (high|low), a short "why" (≤10 words), and needs_reply (true/false). Be decisive. Return valid JSON.`;
 
   const out = await generateJSON(sys, [{ text: `Recent emails:\n${list}` }], TRIAGE_SCHEMA, ctx.model);
-  return Array.isArray(out.mail) ? out.mail : [];
+  const mail = Array.isArray(out.mail) ? out.mail : [];
+  await setSetting(TRIAGE_CACHE_KEY, JSON.stringify({ at: Date.now(), mail }));
+  return mail;
 }
