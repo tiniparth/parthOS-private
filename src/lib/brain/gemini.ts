@@ -50,8 +50,16 @@ export async function generateJSON(
     });
 
     if (res.status === 429 || res.status === 503) {
+      const detail = await res.text().catch(() => "");
+      // Respect Google's requested retry delay ("retry in 6.69s" / retryDelay "6s").
+      let waitMs = 8000;
+      const m =
+        detail.match(/retry in ([\d.]+)s/i) || detail.match(/"retryDelay":\s*"([\d.]+)s"/i);
+      if (m) waitMs = Math.ceil(parseFloat(m[1]) * 1000) + 1200;
+      waitMs = Math.min(waitMs, 12000);
+      console.error(`Gemini ${res.status} (attempt ${attempt}); waiting ${waitMs}ms`);
       if (attempt < 2) {
-        await sleep(1500 * (attempt + 1));
+        await sleep(waitMs);
         continue;
       }
       throw new GeminiRateLimitError();
