@@ -16,5 +16,6 @@ export const env = {
   supabaseUrl: () => req("SUPABASE_URL"),
   supabaseSecret: () => req("SUPABASE_SECRET_KEY"),
   cronSecret: () => req("CRON_SECRET"),
+  dashboardPasscode: () => req("DASHBOARD_PASSCODE"),
   tz: () => process.env.ASSISTANT_TZ || "Asia/Kolkata",
 };
