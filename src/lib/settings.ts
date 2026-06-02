@@ -5,8 +5,8 @@ import { db } from "./supabase";
 import { env } from "./env";
 
 export const MODELS = {
-  fast: "llama-3.3-70b-versatile", // Groq free — daily driver
-  smart: "openai/gpt-oss-120b", // Groq free — meatier reasoning
+  fast: "openai/gpt-oss-120b", // Groq free — capable + follows formatting in JSON mode
+  smart: "openai/gpt-oss-120b", // (same for now; llama is lazy in JSON mode)
 } as const;
 
 export async function getSetting(key: string): Promise<string | null> {
