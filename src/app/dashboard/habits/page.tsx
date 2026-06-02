@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export default function HabitsPage() {
   return (
     <>
-      <h1 style={{ fontSize: 24, marginBottom: 16 }}>Habits</h1>
+      <h1 className="page-title" style={{ marginBottom: 18 }}>Habits</h1>
       <CrudTable
         table="habit_logs"
         columns={[

@@ -2,15 +2,12 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main style={{ maxWidth: 620, margin: "72px auto", padding: 24, lineHeight: 1.6 }}>
-      <h1 style={{ fontSize: 40, marginBottom: 8 }}>🧠 Parth OS</h1>
-      <p style={{ opacity: 0.8 }}>
-        Your personal assistant. Talk to it on Telegram — <strong>@tiniparth_bot</strong>.
+    <main style={{ maxWidth: 600, margin: "96px auto", padding: 24 }}>
+      <h1 style={{ fontSize: 42, marginBottom: 8 }}>Parth OS<span style={{ color: "var(--accent)" }}>.</span></h1>
+      <p className="muted" style={{ fontSize: 17 }}>
+        Your personal operating system. Capture anything on Telegram — <strong style={{ color: "var(--text)" }}>@tiniparth_bot</strong>.
       </p>
-      <Link
-        href="/dashboard"
-        style={{ display: "inline-block", marginTop: 16, padding: "10px 18px", borderRadius: 10, background: "#4f7cff", color: "#fff", textDecoration: "none" }}
-      >
+      <Link href="/dashboard" className="btn" style={{ display: "inline-block", marginTop: 18, textDecoration: "none" }}>
         Open dashboard →
       </Link>
     </main>

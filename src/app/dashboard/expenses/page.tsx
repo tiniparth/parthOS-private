@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export default function ExpensesPage() {
   return (
     <>
-      <h1 style={{ fontSize: 24, marginBottom: 16 }}>Expenses</h1>
+      <h1 className="page-title" style={{ marginBottom: 18 }}>Expenses</h1>
       <CrudTable
         table="expenses"
         columns={[

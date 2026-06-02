@@ -16,39 +16,17 @@ export default function Login() {
       body: JSON.stringify({ passcode }),
     });
     if (res.ok) window.location.href = "/dashboard";
-    else {
-      setError(true);
-      setBusy(false);
-    }
+    else { setError(true); setBusy(false); }
   }
 
   return (
-    <main style={{ maxWidth: 360, margin: "120px auto", padding: 24 }}>
-      <h1 style={{ fontSize: 28 }}>🧠 Parth OS</h1>
-      <p style={{ opacity: 0.7, marginBottom: 20 }}>Enter your passcode to view the dashboard.</p>
-      <form onSubmit={submit}>
-        <input
-          type="password"
-          value={passcode}
-          onChange={(e) => setPasscode(e.target.value)}
-          placeholder="passcode"
-          autoFocus
-          style={{
-            width: "100%", padding: "12px 14px", fontSize: 16, borderRadius: 10,
-            border: "1px solid #333", background: "#161618", color: "#e8e8ea", boxSizing: "border-box",
-          }}
-        />
-        <button
-          type="submit"
-          disabled={busy}
-          style={{
-            width: "100%", marginTop: 12, padding: "12px 14px", fontSize: 16, borderRadius: 10,
-            border: "none", background: "#4f7cff", color: "#fff", cursor: "pointer", opacity: busy ? 0.6 : 1,
-          }}
-        >
-          {busy ? "…" : "Enter"}
-        </button>
-        {error && <p style={{ color: "#ff6b6b", marginTop: 12 }}>Wrong passcode.</p>}
+    <main style={{ maxWidth: 340, margin: "140px auto", padding: 24 }}>
+      <h1 style={{ fontSize: 26, margin: 0 }}>Parth OS<span style={{ color: "var(--accent)" }}>.</span></h1>
+      <p className="muted" style={{ marginBottom: 22 }}>Enter your passcode.</p>
+      <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <input type="password" value={passcode} autoFocus placeholder="passcode" onChange={(e) => setPasscode(e.target.value)} />
+        <button className="btn" type="submit" disabled={busy}>{busy ? "…" : "Enter"}</button>
+        {error && <p style={{ color: "var(--danger)", margin: 0, fontSize: 14 }}>Wrong passcode.</p>}
       </form>
     </main>
   );

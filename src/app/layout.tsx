@@ -1,14 +1,14 @@
+import "./globals.css";
+
 export const metadata = {
   title: "Parth OS",
-  description: "Parth's personal assistant — engine room",
+  description: "Parth's personal assistant",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body style={{ fontFamily: "system-ui, -apple-system, sans-serif", margin: 0, background: "#0b0b0c", color: "#e8e8ea" }}>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

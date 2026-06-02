@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export default function NotesPage() {
   return (
     <>
-      <h1 style={{ fontSize: 24, marginBottom: 16 }}>Notes</h1>
+      <h1 className="page-title" style={{ marginBottom: 18 }}>Notes</h1>
       <CrudTable
         table="notes"
         columns={[
