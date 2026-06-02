@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 
-export default function TodayTasks({ today }: { today: string }) {
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function TodayTasks({ today, initial }: { today: string; initial?: any[] }) {
+  const [tasks, setTasks] = useState<any[]>(initial ? initial.filter((t) => t.status !== "done") : []);
+  const [loading, setLoading] = useState(!initial);
 
   const load = useCallback(async () => {
     const r = await fetch("/api/crud/tasks");
@@ -11,7 +11,7 @@ export default function TodayTasks({ today }: { today: string }) {
     setTasks((j.rows || []).filter((t: any) => t.status !== "done"));
     setLoading(false);
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (!initial) load(); }, [initial, load]);
 
   const relevant = tasks
     .filter((t) => t.due_date && t.due_date <= today)

@@ -23,8 +23,13 @@ function prettyDate() {
 }
 
 export default async function Today() {
-  const d = await loadDashboard();
-  const connected = await googleConnected();
+  // Fetch everything that doesn't depend on each other in parallel.
+  const [d, connected, focusSetting, triageRaw] = await Promise.all([
+    loadDashboard(),
+    googleConnected(),
+    getSetting("focus"),
+    getSetting("triage_cache"),
+  ]);
   const [unread, events] = connected ? await Promise.all([unreadCount(), listUpcoming(0)]) : [0, []];
 
   const open = d.tasks.filter((t) => t.status !== "done");
@@ -40,9 +45,8 @@ export default async function Today() {
   // Needs-attention mail from cached triage (no forced brain call).
   let highMail: any[] = [];
   try {
-    const c = await getSetting("triage_cache");
-    if (c) {
-      const o = JSON.parse(c);
+    if (triageRaw) {
+      const o = JSON.parse(triageRaw);
       if (o.at && Date.now() - o.at < 30 * 60 * 1000) highMail = (o.mail || []).filter((m: any) => m.importance === "high");
     }
   } catch { /* ignore */ }
@@ -63,7 +67,7 @@ export default async function Today() {
       </div>
 
       {/* focus */}
-      <FocusCard suggestion={focusSuggestion} />
+      <FocusCard suggestion={focusSuggestion} initialFocus={focusSetting || ""} />
 
       {/* quick capture */}
       <QuickCapture />
@@ -104,7 +108,7 @@ export default async function Today() {
         <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           <CheckCircle2 className="h-3.5 w-3.5" /> Due today / overdue
         </div>
-        <TodayTasks today={d.today} />
+        <TodayTasks today={d.today} initial={d.tasks} />
       </Card>
 
       {/* needs attention */}
@@ -134,7 +138,7 @@ export default async function Today() {
       {/* habits */}
       <div>
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Habits · tap to log today</p>
-        <HabitTracker />
+        <HabitTracker initial={d.habitLogs} />
       </div>
     </div>
   );

@@ -1,16 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Target } from "lucide-react";
 
-export default function FocusCard({ suggestion = "" }: { suggestion?: string }) {
-  const [focus, setFocus] = useState("");
+export default function FocusCard({ suggestion = "", initialFocus = "" }: { suggestion?: string; initialFocus?: string }) {
+  const [focus, setFocus] = useState(initialFocus);
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState("");
-
-  useEffect(() => {
-    fetch("/api/focus").then((r) => r.json()).then((j) => setFocus(j.focus || ""));
-  }, []);
 
   const display = focus || suggestion;
 
