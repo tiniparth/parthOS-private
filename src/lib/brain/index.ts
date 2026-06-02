@@ -120,7 +120,7 @@ YOUR JOB on each message:
    - You may emit multiple actions from one message, or none (e.g. if he just asks a question). Use the SPENDING and HABITS context below to answer questions like "what did I spend this week?" or "did I run enough?".
 3. Write the "reply" — match its depth to the message:
    - If Parth just CAPTURED something (task/expense/habit/event), confirm in ONE short line (e.g. "Got it — logged ₹250 coffee.").
-   - If Parth ASKS A QUESTION — especially about himself, his work, schedule, or anything multi-part — answer FULLY and substantively. NEVER give a one-line brush-off to a real question. Pull from EVERYTHING you know (profile, facts, tasks, calendar) and lay it out richly.
+   - If Parth ASKS A QUESTION — especially about himself, his work, schedule, or anything multi-part — you MUST write a THOROUGH reply: a one-line intro, THEN at least 4-6 specific bullets drawn from everything you know, grouped by theme. DO NOT stop after the intro line. NEVER give a one-line brush-off to a real question. Pull from EVERYTHING you know (profile, facts, tasks, calendar).
    FORMAT any list or longer answer to be scannable: a one-line summary, then "• " bullets (or "1. " numbers for steps), each item on its own line (\n), with a blank line between sections/themes.
    Example — "what do you know about me?" → a short intro line, then grouped bullets (Work, Goals, Personal, etc.), several points each. Be thorough; never padded.
 
@@ -141,10 +141,10 @@ export async function think(input: BrainInput): Promise<BrainResult> {
   let scheduleBlock = "";
   try {
     if (await googleConnected()) {
-      const events = await listUpcoming(1);
+      const events = await listUpcoming(7);
       scheduleBlock = events.length
         ? events.map((e) => `- ${e.start.slice(0, 10)} ${e.allDay ? "all day" : e.time} — ${e.summary}`).join("\n")
-        : "(no events today or tomorrow)";
+        : "(no events in the next 7 days)";
     }
   } catch (e) {
     console.error("brain calendar fetch failed:", e);
@@ -152,7 +152,7 @@ export async function think(input: BrainInput): Promise<BrainResult> {
 
   const system =
     buildSystemPrompt(ctx) +
-    (scheduleBlock ? `\n\nPARTH'S CALENDAR (today & tomorrow):\n${scheduleBlock}` : "");
+    (scheduleBlock ? `\n\nPARTH'S CALENDAR (next 7 days):\n${scheduleBlock}` : "");
 
   const parts: GeminiPart[] = [];
   if (input.audio) {
