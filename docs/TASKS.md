@@ -12,7 +12,7 @@ Last updated: 2026-06-02
 
 ## ⭐ Known polish areas (dedicated passes later — flagged by Parth)
 - [ ] **Memory + triage + context quality** — the whole memory model, email triage ranking, AND Drive `/find` search relevance all need real tuning (not a quick patch). They share the same root: how well the OS understands Parth's context. Currently first-cut. `/find` works but relevance/ranking needs polish.
-- [ ] **Polish the dashboard to Parth's taste** — iterative look-and-feel pass *with Parth's eye*: layout, density, color/accent, what leads, the daily-first feel. Design system is in place; needs his direction to dial in the vibe (clean · minimal · founder clarity · runner agility).
+- [ ] **Polish the dashboard to Parth's taste** — MAJOR REVAMP DONE (Tailwind v4 + shadcn-style components, sidebar shell, rebuilt Today, all section pages migrated, toasts). Now iterative fine-tuning with Parth's eye: density, accent, what leads, niceties (⌘K quick-add, filters, light mode).
 
 ## 🟡 Up next
 - [ ] **Granola (free tier)** — no API on free (API needs Business plan). Path: Zapier → Google Doc → Parth OS reads via Drive; or one-time manual pull. Pending Parth's choice.

@@ -58,6 +58,11 @@ _Chronological record of what was actually built/changed. Newest first. See [PRD
 - New: `lib/brain/groq.ts` (OpenAI-compatible JSON-mode), `lib/voice.ts` (Whisper). All three brain callers (think, triage, briefing) now use Groq. Gemini code kept for swap-back when billing is enabled.
 - Bug fixed: Llama nests action fields under the type name (`{create_event:{...}}`); added a normalizer in `executeActions` + an explicit flat-shape example in the prompt. Verified end-to-end: "block 30 mins tomorrow 5pm for ISB essay drafting" → calendar event created, **zero rate limits**.
 
+**Dashboard revamp (Tailwind + shadcn/ui)**
+- Stage 1: added Tailwind v4 + shadcn-style components (`Card`, `Button`, `Input`, `cn`), sidebar app shell (desktop sidebar + mobile top nav, active highlighting), rebuilt "Today" (stat tiles, 7-day schedule, inbox, habit glance).
+- Stage 2: migrated `CrudTable` + all section pages (tasks/expenses/habits/notes/memory/mail) + ProfileEditor to the new system; added sonner toasts on add/save/delete. Legacy CSS kept underneath during transition.
+- Chosen direction: sidebar command center, dark, clean. Iterative taste-tuning + ⌘K/filters/light-mode remain optional.
+
 **Web dashboard added**
 - Passcode-protected dashboard at `/dashboard` (login at `/login`; `DASHBOARD_PASSCODE` env; sha256 in httpOnly cookie, 30-day). Auth flow verified (no-cookie→redirect, wrong→401, correct→200).
 - Shows: tasks (with mark-done toggle via `/api/tasks/done`), expenses (month total + by category + list), habits (last-7-day counts), recent notes, learned facts + full profile.
