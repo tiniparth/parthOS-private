@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { env } from "@/lib/env";
 import { sendMessage, sendTyping, downloadFileAsBase64 } from "@/lib/telegram";
 import { think } from "@/lib/brain";
+import { GeminiRateLimitError } from "@/lib/brain/gemini";
 import { logCapture, executeActions } from "@/lib/memory";
 import type { BrainInput } from "@/lib/types";
 
@@ -78,7 +79,14 @@ async function handleMessage(update: unknown, msg: any, chatId: number) {
     await sendMessage(chatId, result.reply);
   } catch (err) {
     console.error("handleMessage error:", err);
-    await sendMessage(chatId, "Something went wrong on my end 😕 — try again in a moment.");
+    if (err instanceof GeminiRateLimitError) {
+      await sendMessage(
+        chatId,
+        "My free brain hit its rate limit 🥵 (too many messages too fast). Give it ~30s and resend."
+      );
+    } else {
+      await sendMessage(chatId, "Something went wrong on my end 😕 — try again in a moment.");
+    }
   }
 }
 

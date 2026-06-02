@@ -8,6 +8,16 @@ export interface GeminiPart {
   inline_data?: { mime_type: string; data: string };
 }
 
+/** Thrown when Gemini's free-tier rate limit (429) is hit after retries. */
+export class GeminiRateLimitError extends Error {
+  constructor() {
+    super("Gemini rate limit (429)");
+    this.name = "GeminiRateLimitError";
+  }
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export async function generateJSON(
   systemPrompt: string,
   parts: GeminiPart[],
@@ -23,28 +33,43 @@ export async function generateJSON(
       responseMimeType: "application/json",
       responseSchema: schema,
       temperature: 0.4,
-      // Disable extended thinking for snappy, cheap replies. Raise later if needed.
+      // Hard cap so a degenerate repetition loop can't produce a 5k-char field.
+      maxOutputTokens: 1024,
+      // Disable extended thinking for snappy, cheap replies.
       thinkingConfig: { thinkingBudget: 0 },
     },
   };
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  // Retry transient rate-limit / overload (429/503) with backoff. We run in
+  // after(), so a couple of seconds of backoff is fine.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
 
-  if (!res.ok) {
-    throw new Error(`Gemini ${res.status}: ${await res.text()}`);
+    if (res.status === 429 || res.status === 503) {
+      if (attempt < 2) {
+        await sleep(1500 * (attempt + 1));
+        continue;
+      }
+      throw new GeminiRateLimitError();
+    }
+
+    if (!res.ok) {
+      throw new Error(`Gemini ${res.status}: ${await res.text()}`);
+    }
+
+    const j = await res.json();
+    const text: string =
+      j?.candidates?.[0]?.content?.parts?.map((p: any) => p.text ?? "").join("") ?? "";
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error(`Gemini returned non-JSON: ${text.slice(0, 300)}`);
+    }
   }
 
-  const j = await res.json();
-  const text: string =
-    j?.candidates?.[0]?.content?.parts?.map((p: any) => p.text ?? "").join("") ?? "";
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error(`Gemini returned non-JSON: ${text.slice(0, 300)}`);
-  }
+  throw new GeminiRateLimitError();
 }

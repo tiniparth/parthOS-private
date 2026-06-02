@@ -32,27 +32,29 @@ export async function logCapture(kind: "text" | "voice", raw: string, meta: unkn
 export async function executeActions(actions: Action[]): Promise<string[]> {
   const sb = db();
   const done: string[] = [];
+  const cap = (s: string, n: number) => (s.length > n ? s.slice(0, n) : s);
   for (const raw of actions) {
     // Be tolerant: the model occasionally puts the payload in a sibling field.
     const a = raw as any;
     if (a.type === "create_task") {
       const title = a.title || a.content || a.fact;
       if (!title) continue;
+      // Safety net against runaway generation.
       await sb.from("tasks").insert({
-        title,
+        title: cap(title, 250),
         due_date: a.due_date || null,
         priority: a.priority || null,
       });
-      done.push(`task: ${title}`);
+      done.push(`task: ${cap(title, 60)}`);
     } else if (a.type === "create_note") {
       const content = a.content || a.title || a.fact;
       if (!content) continue;
-      await sb.from("notes").insert({ content, tags: a.tags ?? null });
+      await sb.from("notes").insert({ content: cap(content, 4000), tags: a.tags ?? null });
       done.push("note saved");
     } else if (a.type === "remember_fact") {
       const fact = a.fact || a.content || a.title;
       if (!fact) continue;
-      await sb.from("memory_facts").insert({ category: a.category ?? null, fact });
+      await sb.from("memory_facts").insert({ category: a.category ?? null, fact: cap(fact, 1000) });
       done.push("fact remembered");
     }
   }

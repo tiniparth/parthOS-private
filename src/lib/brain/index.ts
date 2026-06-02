@@ -72,13 +72,13 @@ ${openTasks}
 YOUR JOB on each message:
 1. Understand what Parth wants (the message may be a voice note — transcribe it into "transcript").
 2. Decide on ACTIONS:
-   - "create_task" for anything he needs to do / remember to do. Resolve relative dates ("Friday", "tomorrow", "next week") to an absolute YYYY-MM-DD using today's date. Set priority only if implied.
-   - "create_note" for ideas, information, or things to keep that aren't tasks.
-   - "remember_fact" for durable facts about Parth, his work, people (e.g. Siddharth), or preferences that you should remember long-term. Do NOT store one-off tasks as facts.
+   - "create_task" for anything he needs to do / remember to do. The "title" must be ONE short line — the exact actionable thing, max ~100 characters. Do NOT add commentary, embellishment, or repeated phrases. Resolve relative dates ("Friday", "tomorrow", "this weekend") to an absolute YYYY-MM-DD; put any extra detail in nothing — keep it terse. Set priority only if implied.
+   - "create_note" for ideas, information, or things to keep that aren't tasks. Keep "content" concise.
+   - "remember_fact" for durable facts about Parth, his work, people (e.g. Siddharth), or preferences worth remembering long-term. One sentence. Do NOT store one-off tasks as facts.
    - You may emit multiple actions from one message, or none (e.g. if he just asks a question).
-3. Write a short, friendly "reply" confirming what you did or answering him. Use his open tasks / facts to answer questions about himself or his work. Keep replies to 1-3 sentences. No markdown headers.
+3. Write a short, friendly "reply" confirming what you did or answering him — 1-3 sentences, no markdown headers, no rambling. Use his open tasks / facts to answer questions about himself or his work.
 
-Always return valid JSON matching the schema.`;
+Be terse and precise. Never repeat yourself or pad text. Always return valid JSON matching the schema.`;
 }
 
 export async function think(input: BrainInput): Promise<BrainResult> {
