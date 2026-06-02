@@ -15,11 +15,14 @@ Last updated: 2026-06-02
 - [ ] **Polish the dashboard to Parth's taste** — iterative look-and-feel pass *with Parth's eye*: layout, density, color/accent, what leads, the daily-first feel. Design system is in place; needs his direction to dial in the vibe (clean · minimal · founder clarity · runner agility).
 
 ## 🟡 Up next
-- [ ] Phase 6 polish: `/tasks` list + mark-done from chat, cleaner reply formatting
-- [ ] Confirm the 7am cron actually fires tomorrow morning
-- [ ] Calendar: create/edit events (currently read-only)
+- [ ] **Granola (free tier)** — no API on free (API needs Business plan). Path: Zapier → Google Doc → Parth OS reads via Drive; or one-time manual pull. Pending Parth's choice.
+- [ ] Confirm the 7am cron fires tomorrow morning
+- [ ] Sheets: wire to a specific spreadsheet (e.g. expense tracker) — needs Parth to name the sheet
+- [ ] Gmail *send* (approve-&-send drafts) — deferred; read-only for now
 
 ## 🟢 Backlog (post-MVP)
+- [ ] **Proactive nudges** — DEFERRED until the triage polish; Parth will define the nudge areas then
+- [ ] Strava — SKIPPED for now (per Parth)
 - [ ] Google Calendar (create/read events from chat)
 - [ ] Granola meeting-notes integration
 - [ ] Proactive follow-ups ("you owed Siddharth X")
@@ -45,4 +48,6 @@ Last updated: 2026-06-02
 - [x] Gmail (read-only) connected + contextual triage (Mail page, /inbox, briefing)
 - [x] Google Calendar (read-only) connected — today/tomorrow on overview
 - [x] Google expansion: Drive (/find), Docs read, Sheets read+write, Calendar create (create_event action) — all scopes granted & verified
+- [x] Brain swapped to Groq (free, reliable) + Whisper voice; rich formatted answers
+- [x] Brain reads calendar (next 7 days) for schedule questions; calendar write works on demand
 - [x] Set up docs system (PRD, PROGRESS, TASKS)
