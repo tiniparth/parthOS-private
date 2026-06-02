@@ -35,11 +35,11 @@ export default async function Dashboard() {
   }
 
   return (
-    <main style={{ maxWidth: 760, margin: "0 auto", padding: "32px 20px 64px" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 24 }}>
-        <h1 style={{ fontSize: 30, margin: 0 }}>🧠 Parth OS</h1>
+    <>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 18 }}>
+        <h1 style={{ fontSize: 24, margin: 0 }}>Overview</h1>
         <span style={{ opacity: 0.5, fontSize: 14 }}>{d.today}</span>
-      </header>
+      </div>
 
       <Card title={`Tasks · ${open.length} open`}>
         {open.length ? (
@@ -123,6 +123,6 @@ export default async function Dashboard() {
           <pre style={{ whiteSpace: "pre-wrap", fontSize: 13, opacity: 0.8, marginTop: 10, fontFamily: "inherit" }}>{d.profile}</pre>
         </details>
       </Card>
-    </main>
+    </>
   );
 }
