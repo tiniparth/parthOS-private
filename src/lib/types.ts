@@ -4,7 +4,9 @@
 export type Action =
   | { type: "create_task"; title: string; due_date?: string | null; priority?: string | null }
   | { type: "create_note"; content: string; tags?: string[] | null }
-  | { type: "remember_fact"; category?: string | null; fact: string };
+  | { type: "remember_fact"; category?: string | null; fact: string }
+  | { type: "log_expense"; amount: number; item?: string | null; category?: string | null; spent_on?: string | null }
+  | { type: "log_habit"; habit: string; done_on?: string | null };
 
 export interface BrainResult {
   reply: string;

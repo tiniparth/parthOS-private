@@ -57,6 +57,26 @@ create table if not exists settings (
   updated_at  timestamptz not null default now()
 );
 
+-- Expenses.
+create table if not exists expenses (
+  id          uuid primary key default gen_random_uuid(),
+  amount      numeric not null,
+  currency    text not null default 'INR',
+  item        text,
+  category    text,                          -- food | travel | work | ...
+  spent_on    date not null default current_date,
+  created_at  timestamptz not null default now()
+);
+
+-- Habit logs (running, reading, yoga, journalling, ...).
+create table if not exists habit_logs (
+  id          uuid primary key default gen_random_uuid(),
+  habit       text not null,
+  done_on     date not null default current_date,
+  note        text,
+  created_at  timestamptz not null default now()
+);
+
 -- Security: enable RLS with NO policies. The anon/publishable key is then
 -- blocked from every table; our server uses the service_role key, which
 -- bypasses RLS. So nothing is publicly readable.
@@ -66,3 +86,5 @@ alter table captures     enable row level security;
 alter table tasks        enable row level security;
 alter table notes        enable row level security;
 alter table settings     enable row level security;
+alter table expenses     enable row level security;
+alter table habit_logs   enable row level security;

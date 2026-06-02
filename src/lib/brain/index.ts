@@ -17,7 +17,10 @@ const SCHEMA = {
       items: {
         type: "object",
         properties: {
-          type: { type: "string", enum: ["create_task", "create_note", "remember_fact"] },
+          type: {
+            type: "string",
+            enum: ["create_task", "create_note", "remember_fact", "log_expense", "log_habit"],
+          },
           title: { type: "string" },
           due_date: { type: "string" },
           priority: { type: "string", enum: ["low", "med", "high"] },
@@ -25,6 +28,11 @@ const SCHEMA = {
           tags: { type: "array", items: { type: "string" } },
           category: { type: "string" },
           fact: { type: "string" },
+          amount: { type: "number" },
+          item: { type: "string" },
+          spent_on: { type: "string" },
+          habit: { type: "string" },
+          done_on: { type: "string" },
         },
         required: ["type"],
       },
@@ -56,6 +64,25 @@ function buildSystemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>): string
           .join("\n")
       : "(none open)";
 
+  // Spending summary (this calendar month).
+  const spendTotal = ctx.expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+  const todaySpend = ctx.expenses
+    .filter((e) => e.spent_on === ctx.today)
+    .reduce((s, e) => s + Number(e.amount || 0), 0);
+  const spending =
+    ctx.expenses.length > 0
+      ? `This month total ₹${spendTotal} (today ₹${todaySpend}). Recent: ` +
+        ctx.expenses.slice(0, 8).map((e) => `₹${e.amount} ${e.item ?? ""}`.trim()).join(", ")
+      : "(no expenses logged this month)";
+
+  // Habit summary (last 7 days).
+  const habitCounts: Record<string, number> = {};
+  for (const h of ctx.habitLogs) habitCounts[h.habit] = (habitCounts[h.habit] || 0) + 1;
+  const habits =
+    ctx.habitLogs.length > 0
+      ? Object.entries(habitCounts).map(([h, n]) => `${h} ×${n}`).join(", ")
+      : "(no habits logged in the last 7 days)";
+
   return `You are Parth OS — Parth's personal assistant. You are warm, concise, and proactive. You speak to Parth directly and briefly, like a sharp chief-of-staff who already knows him.
 
 Today is ${todayString(tz)} (timezone ${tz}).
@@ -69,13 +96,21 @@ ${facts}
 PARTH'S CURRENTLY OPEN TASKS:
 ${openTasks}
 
+SPENDING (this month):
+${spending}
+
+HABITS (last 7 days):
+${habits}
+
 YOUR JOB on each message:
 1. Understand what Parth wants (the message may be a voice note — transcribe it into "transcript").
 2. Decide on ACTIONS:
    - "create_task" for anything he needs to do / remember to do. The "title" must be ONE short line — the exact actionable thing, max ~100 characters. Do NOT add commentary, embellishment, or repeated phrases. Resolve relative dates ("Friday", "tomorrow", "this weekend") to an absolute YYYY-MM-DD; put any extra detail in nothing — keep it terse. Set priority only if implied.
    - "create_note" for ideas, information, or things to keep that aren't tasks. Keep "content" concise.
    - "remember_fact" for durable facts about Parth, his work, people (e.g. Siddharth), or preferences worth remembering long-term. One sentence. Do NOT store one-off tasks as facts.
-   - You may emit multiple actions from one message, or none (e.g. if he just asks a question).
+   - "log_expense" when Parth reports money spent. Extract a numeric "amount" (assume INR unless stated), a short "item" (e.g. "lunch"), and a "category" (food/travel/work/personal/etc). Resolve the date to "spent_on" (YYYY-MM-DD, default today). One message can contain multiple expenses → emit one log_expense each.
+   - "log_habit" when Parth reports doing a habit. "habit" must be one of: running, reading, yoga, journalling (map "ran"→running, "read"→reading, "did yoga"→yoga, "journaled"→journalling). "done_on" = YYYY-MM-DD (default today).
+   - You may emit multiple actions from one message, or none (e.g. if he just asks a question). Use the SPENDING and HABITS context below to answer questions like "what did I spend this week?" or "did I run enough?".
 3. Write a short, friendly "reply" confirming what you did or answering him — 1-3 sentences, no markdown headers, no rambling. Use his open tasks / facts to answer questions about himself or his work.
 
 If you genuinely don't know something about Parth, say so plainly — never guess or fabricate facts about him.
