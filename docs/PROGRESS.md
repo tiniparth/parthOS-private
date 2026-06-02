@@ -35,4 +35,9 @@ _Chronological record of what was actually built/changed. Newest first. See [PRD
 
 **Set up documentation system** (this commit): `PRD.md`, `PROGRESS.md`, `TASKS.md`; git synced to GitHub.
 
+**Rate-limit deep-dive (Gemini 429)**
+- Root cause: Gemini free tier = **20 requests/minute** per project (`generate_content_free_tier_requests`). It was being tripped by overlapping burst testing (Parth's messages + Claude's diagnostic calls sharing the same per-minute budget). Initial backoff (1.5s/3s) was shorter than Google's requested ~6.7s retry, so retries gave up early.
+- Fix: parse Google's requested retry delay and honour it (cap 12s), within the `after()` budget. Confirmed the bot processes successfully when the per-minute window has room.
+- Note for daily use: a single user sending one message at a time stays well under 20/min. If bursts ever matter, upgrade the brain to a paid tier (no tight RPM) — already in backlog.
+
 **Next:** Phase 5 — daily briefing (Vercel Cron).
