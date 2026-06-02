@@ -1,7 +1,8 @@
 /* The brain. Loads Parth's context, asks Gemini what to do, returns a reply
    plus a list of actions for the caller to execute. Provider-agnostic: swap
    gemini.ts for a Claude implementation later without touching callers. */
-import { generateJSON, GeminiPart } from "./gemini";
+import { generateJSON } from "./groq";
+import type { GeminiPart } from "./gemini";
 import { loadContext } from "../memory";
 import { env } from "../env";
 import type { BrainInput, BrainResult } from "../types";
@@ -118,6 +119,10 @@ YOUR JOB on each message:
 3. Write a short, friendly "reply" confirming what you did or answering him — 1-3 sentences, no markdown headers, no rambling. Use his open tasks / facts to answer questions about himself or his work.
 
 If you genuinely don't know something about Parth, say so plainly — never guess or fabricate facts about him.
+
+ACTION SHAPE (strict): each action is a FLAT object with a "type" field and its fields as siblings. Example:
+{"reply":"Blocked it.","actions":[{"type":"create_event","summary":"ISB essay drafting","when":"2026-06-03T17:00:00+05:30","duration_min":30}]}
+Do NOT nest fields under the type name (NOT {"create_event":{...}}).
 
 CRITICAL OUTPUT RULES: Every field is at most one short sentence. NEVER repeat words or phrases. NEVER add praise, poetry, reflections, or commentary about people — a task about a person is just the bare action (e.g. "Call Pandit Sir — Sat evening"). Be terse and precise. Always return valid JSON matching the schema.`;
 }

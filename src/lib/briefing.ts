@@ -1,7 +1,7 @@
 /* Builds Parth's morning briefing from his live data. Tries the brain for a
    warm, personalized phrasing; falls back to a plain format if that fails. */
 import { loadContext } from "./memory";
-import { generateJSON } from "./brain/gemini";
+import { generateJSON } from "./brain/groq";
 import { isGmailConnected, triageInbox } from "./gmail";
 
 const TRACKED_HABITS = ["running", "reading", "yoga", "journalling"];

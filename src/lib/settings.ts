@@ -5,8 +5,8 @@ import { db } from "./supabase";
 import { env } from "./env";
 
 export const MODELS = {
-  fast: "gemini-2.5-flash-lite", // ~1000/day free — daily driver
-  smart: "gemini-2.5-flash", // ~20/day free — meaty tasks
+  fast: "llama-3.3-70b-versatile", // Groq free — daily driver
+  smart: "openai/gpt-oss-120b", // Groq free — meatier reasoning
 } as const;
 
 export async function getSetting(key: string): Promise<string | null> {
@@ -23,5 +23,5 @@ export async function setSetting(key: string, value: string): Promise<boolean> {
 }
 
 export async function getActiveModel(): Promise<string> {
-  return (await getSetting("model")) || env.geminiModel();
+  return (await getSetting("model")) || env.brainModel();
 }

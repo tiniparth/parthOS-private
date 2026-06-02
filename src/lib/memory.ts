@@ -46,7 +46,7 @@ export async function loadContext(): Promise<Context> {
     habitLogs: habitRes.data ?? [],
     today,
     // settings table may not exist yet → modelRes.error → fall back to env default.
-    model: modelRes.data?.[0]?.value || env.geminiModel(),
+    model: modelRes.data?.[0]?.value || env.brainModel(),
   };
 }
 
@@ -60,9 +60,17 @@ export async function executeActions(actions: Action[]): Promise<string[]> {
   const sb = db();
   const done: string[] = [];
   const cap = (s: string, n: number) => (s.length > n ? s.slice(0, n) : s);
-  for (const raw of actions) {
-    // Be tolerant: the model occasionally puts the payload in a sibling field.
-    const a = raw as any;
+  const KNOWN = ["create_task", "create_note", "remember_fact", "log_expense", "log_habit", "create_event"];
+  // Some models (e.g. Llama via Groq) nest fields under the type name:
+  // { create_event: {...} } instead of { type:"create_event", ... }. Flatten that.
+  const normalize = (raw: any): any => {
+    if (raw && typeof raw === "object" && !raw.type) {
+      for (const k of KNOWN) if (raw[k] && typeof raw[k] === "object") return { type: k, ...raw[k] };
+    }
+    return raw;
+  };
+  for (const rawAction of actions) {
+    const a = normalize(rawAction) as any;
     if (a.type === "create_task") {
       const title = a.title || a.content || a.fact;
       if (!title) continue;

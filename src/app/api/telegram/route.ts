@@ -9,7 +9,7 @@ import { setSetting, getActiveModel, MODELS } from "@/lib/settings";
 import { isGmailConnected, triageInbox } from "@/lib/gmail";
 import { googleConnected } from "@/lib/google";
 import { searchFiles } from "@/lib/drive";
-import type { BrainInput } from "@/lib/types";
+import { transcribe } from "@/lib/voice";
 
 /** Handle brain-switch commands. Returns true if the message was a command. */
 async function handleCommand(text: string, chatId: number): Promise<boolean> {
@@ -110,24 +110,28 @@ async function handleMessage(update: unknown, msg: any, chatId: number) {
 
     await sendTyping(chatId);
 
-    let input: BrainInput;
+    // Resolve to text — transcribe voice notes via Groq Whisper.
+    let userText = text;
     if (voice?.file_id) {
       const audio = await downloadFileAsBase64(voice.file_id);
       if (!audio) {
         await sendMessage(chatId, "Hmm, I couldn't fetch that voice note. Mind trying again?");
         return;
       }
-      input = { audio, text };
-    } else if (text) {
-      input = { text };
-    } else {
+      userText = await transcribe(audio.base64, audio.mime);
+      if (!userText) {
+        await sendMessage(chatId, "I couldn't make out that voice note — try again?");
+        return;
+      }
+    }
+    if (!userText) {
       await sendMessage(chatId, "I can handle text or voice notes right now. 🙂");
       return;
     }
 
-    const result = await think(input);
+    const result = await think({ text: userText });
 
-    await logCapture(voice ? "voice" : "text", result.transcript || text, update);
+    await logCapture(voice ? "voice" : "text", userText, update);
     await executeActions(result.actions);
 
     await sendMessage(chatId, result.reply);

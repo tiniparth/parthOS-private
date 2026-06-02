@@ -4,7 +4,7 @@
 import { googleAccessToken, googleConnected } from "./google";
 import { getSetting, setSetting } from "./settings";
 import { loadContext } from "./memory";
-import { generateJSON } from "./brain/gemini";
+import { generateJSON } from "./brain/groq";
 
 const TRIAGE_CACHE_KEY = "triage_cache";
 const TRIAGE_TTL_MS = 10 * 60 * 1000; // 10 min — avoid a Gemini call on every page load
