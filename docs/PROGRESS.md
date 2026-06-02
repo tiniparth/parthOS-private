@@ -4,6 +4,23 @@ _Chronological record of what was actually built/changed. Newest first. See [PRD
 
 ---
 
+## 2026-06-02 — Session close (built the whole thing in one day)
+From "I want a personal assistant" → a live dual cloud+local personal OS on ₹0.
+- **Cloud (Parth OS):** Telegram @tiniparth_bot (text+voice) + Next.js/Vercel + Supabase. Captures tasks/notes/facts/expenses/habits; daily briefing; `/inbox` `/find` `/doc` `/smart` `/fast`.
+- **Brain:** migrated Gemini → **Groq** (free, reliable); `gpt-oss-120b` for rich answers; Whisper for voice.
+- **Google:** Gmail triage, Calendar read+write (create events, schedule q's), Drive `/find`, Docs `/doc` generation, Sheets.
+- **Dashboard:** full Tailwind/shadcn revamp — sidebar, bento **Today** (focus + web quick-capture + streamed schedule/inbox + event done-marking), **Tasks** (grouped + date filter), **Calendar** (agenda + add), **Mail** triage, **Expenses** (category bars), **Habits** (streak rings), Notes, Memory, **Search**; **PWA** (installable); keep-warm Action.
+- **In-folder assistant:** Claude Code as chief-of-staff — `CLAUDE.md` (Parth OS + Workwise) + `/commands` + `scripts/os.mjs` bridge sharing the same Supabase brain.
+
+### OPEN (next sessions)
+- [ ] **Reconnect Google** (Mail → Reconnect) to grant the new doc-write scope so `/doc` works
+- [ ] Confirm the 7am cron briefing fires
+- [ ] Memory + triage + /find quality polish (Parth to define nudge areas)
+- [ ] Proactive automation layer (nudges/digests via free GitHub Actions/cron)
+- [ ] Calendar attendees (invite people); Gmail send (approve & send)
+- [ ] Sheets → wire to a specific spreadsheet; running-plan mapping (when shared)
+- [ ] Dashboard taste-tuning; cold-start (keep-warm partial)
+
 ## 2026-06-02 — Day 1: MVP backbone built & deployed
 
 **Phase 0 — Accounts & keys** ✅
