@@ -52,6 +52,12 @@ _Chronological record of what was actually built/changed. Newest first. See [PRD
 
 **MVP COMPLETE.** Open polish: expense categories, /tasks + mark-done from chat, confirm cron fires tomorrow.
 
+**Brain migrated to Groq (free, no daily cap) — the big unlock**
+- Discovered the Gemini key was capped at **20 requests/DAY** (not per-minute, not the ~1000 assumed) — unusable for daily use; lifting it required ₹1,000 refundable prepayment (no credit card option). Parth opted not to pay now.
+- Switched the swappable brain to **Groq free tier**: `llama-3.3-70b-versatile` (default), `openai/gpt-oss-120b` (/smart), + **Whisper (whisper-large-v3-turbo)** for voice-note transcription. No card, ~thousands/day, ~30/min.
+- New: `lib/brain/groq.ts` (OpenAI-compatible JSON-mode), `lib/voice.ts` (Whisper). All three brain callers (think, triage, briefing) now use Groq. Gemini code kept for swap-back when billing is enabled.
+- Bug fixed: Llama nests action fields under the type name (`{create_event:{...}}`); added a normalizer in `executeActions` + an explicit flat-shape example in the prompt. Verified end-to-end: "block 30 mins tomorrow 5pm for ISB essay drafting" → calendar event created, **zero rate limits**.
+
 **Web dashboard added**
 - Passcode-protected dashboard at `/dashboard` (login at `/login`; `DASHBOARD_PASSCODE` env; sha256 in httpOnly cookie, 30-day). Auth flow verified (no-cookie→redirect, wrong→401, correct→200).
 - Shows: tasks (with mark-done toggle via `/api/tasks/done`), expenses (month total + by category + list), habits (last-7-day counts), recent notes, learned facts + full profile.
