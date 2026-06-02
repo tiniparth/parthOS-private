@@ -60,7 +60,7 @@ export default async function Today() {
       <FocusCard suggestion={focusSuggestion} initialFocus={focusSetting || ""} />
       <QuickCapture />
 
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map((s, i) => (
           <Card key={i} className="p-3 text-center">
             <div className={cn("text-xl font-bold leading-none", s.warn && "text-warn")}>{s.n}</div>
