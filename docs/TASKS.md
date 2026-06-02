@@ -37,4 +37,5 @@ Last updated: 2026-06-02
 - [x] Expense tracking (log_expense + monthly totals)
 - [x] Habit tracking (log_habit + 7-day summary)
 - [x] Phase 5 — daily briefing (Vercel Cron 07:00 IST; verified via manual trigger)
+- [x] Web dashboard (passcode-protected): tasks+mark-done, expenses, habits, notes, memory
 - [x] Set up docs system (PRD, PROGRESS, TASKS)

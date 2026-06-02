@@ -51,3 +51,8 @@ _Chronological record of what was actually built/changed. Newest first. See [PRD
 - Phase 5 daily briefing: `/api/cron/briefing` (CRON_SECRET auth) + `vercel.json` cron `30 1 * * *` (07:00 IST). Weaves tasks + habits + spend into a warm brain-written message (plain fallback). Verified via manual trigger → delivered to Telegram.
 
 **MVP COMPLETE.** Open polish: expense categories, /tasks + mark-done from chat, confirm cron fires tomorrow.
+
+**Web dashboard added**
+- Passcode-protected dashboard at `/dashboard` (login at `/login`; `DASHBOARD_PASSCODE` env; sha256 in httpOnly cookie, 30-day). Auth flow verified (no-cookie→redirect, wrong→401, correct→200).
+- Shows: tasks (with mark-done toggle via `/api/tasks/done`), expenses (month total + by category + list), habits (last-7-day counts), recent notes, learned facts + full profile.
+- Files: `lib/auth.ts`, `lib/dashboard.ts`, `app/login`, `app/dashboard`, `app/api/login`, `app/api/tasks/done`.
