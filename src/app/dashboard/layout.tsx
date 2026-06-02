@@ -1,22 +1,17 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { isAuthed } from "@/lib/auth";
-import Nav from "./Nav";
+import Sidebar from "./Sidebar";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   if (!(await isAuthed())) redirect("/login");
   return (
-    <div className="container">
-      <header className="topbar">
-        <Link href="/dashboard" className="brand">
-          Parth OS<span className="dot">.</span>
-        </Link>
-        <Nav />
-        <a href="/api/logout" className="logout">Logout</a>
-      </header>
-      {children}
+    <div className="min-h-screen">
+      <Sidebar />
+      <main className="md:pl-56">
+        <div className="mx-auto max-w-4xl px-4 py-6 md:px-8 md:py-9">{children}</div>
+      </main>
     </div>
   );
 }

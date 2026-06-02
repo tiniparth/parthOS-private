@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { Calendar, Mail } from "lucide-react";
 import CrudTable from "./CrudTable";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { loadDashboard } from "@/lib/dashboard";
 import { googleConnected } from "@/lib/google";
 import { unreadCount } from "@/lib/gmail";
@@ -7,14 +10,12 @@ import { listUpcoming } from "@/lib/calendar";
 
 export const dynamic = "force-dynamic";
 
-const TRACKED_HABITS = ["running", "reading", "yoga", "journalling"];
+const TRACKED = ["running", "reading", "yoga", "journalling"];
 
-export default async function Dashboard() {
+export default async function Today() {
   const d = await loadDashboard();
   const connected = await googleConnected();
-  const [unread, events] = connected
-    ? await Promise.all([unreadCount(), listUpcoming(1)])
-    : [0, []];
+  const [unread, events] = connected ? await Promise.all([unreadCount(), listUpcoming(7)]) : [0, []];
 
   const open = d.tasks.filter((t) => t.status !== "done");
   const dueToday = open.filter((t) => t.due_date && t.due_date <= d.today).length;
@@ -22,56 +23,81 @@ export default async function Dashboard() {
   const habitCount: Record<string, number> = {};
   for (const h of d.habitLogs) habitCount[h.habit.toLowerCase()] = (habitCount[h.habit.toLowerCase()] || 0) + 1;
 
+  const stats = [
+    { n: dueToday, l: "due today", warn: dueToday > 0 },
+    { n: open.length, l: "open tasks", warn: false },
+    { n: connected ? unread : "—", l: "unread mail", warn: false },
+    { n: `₹${spendTotal}`, l: "spent / month", warn: false },
+  ];
+
   return (
-    <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 18 }}>
-        <h1 className="page-title">Today</h1>
-        <span className="faint" style={{ fontSize: 14 }}>{d.today}</span>
+    <div className="space-y-6">
+      <div className="flex items-baseline justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">Today</h1>
+        <span className="text-sm text-muted-foreground">{d.today}</span>
       </div>
 
-      {/* clarity: the day's vital signs */}
-      <div className="stats" style={{ marginBottom: 22 }}>
-        <div className="stat"><div className="num" style={{ color: dueToday ? "var(--warn)" : undefined }}>{dueToday}</div><div className="lbl">due today</div></div>
-        <div className="stat"><div className="num">{open.length}</div><div className="lbl">open tasks</div></div>
-        <div className="stat"><div className="num">{connected ? unread : "—"}</div><div className="lbl">unread mail</div></div>
-        <div className="stat"><div className="num">₹{spendTotal}</div><div className="lbl">spent / month</div></div>
+      {/* vital signs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {stats.map((s, i) => (
+          <Card key={i} className="p-4">
+            <div className={cn("text-2xl font-bold leading-none", s.warn && "text-warn")}>{s.n}</div>
+            <div className="mt-1 text-xs text-muted-foreground">{s.l}</div>
+          </Card>
+        ))}
       </div>
 
-      {/* Calendar */}
-      <section className="card">
-        <h2>📅 Schedule · today + tomorrow</h2>
+      {/* schedule */}
+      <Card className="p-5">
+        <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <Calendar className="h-3.5 w-3.5" /> Schedule · next 7 days
+        </div>
         {!connected ? (
-          <p className="muted" style={{ margin: 0 }}>Connect Google to see your calendar — <Link href="/dashboard/mail" style={{ color: "var(--accent)" }}>Mail → Connect</Link>.</p>
+          <p className="text-sm text-muted-foreground">
+            Connect Google in <Link href="/dashboard/mail" className="text-primary">Mail</Link> to see your calendar.
+          </p>
         ) : events.length === 0 ? (
-          <p className="muted" style={{ margin: 0 }}>No events. Clear runway. 🛫</p>
+          <p className="text-sm text-muted-foreground">No events. Clear runway. 🛫</p>
         ) : (
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-            {events.map((e, i) => (
-              <li key={i} className="divider" style={{ display: "flex", gap: 12, padding: "7px 0", fontSize: 14 }}>
-                <span style={{ color: "var(--accent)", minWidth: 78 }}>{e.allDay ? "all day" : e.time}</span>
+          <ul className="space-y-1.5 text-sm">
+            {events.slice(0, 10).map((e, i) => (
+              <li key={i} className="flex gap-3">
+                <span className="w-24 shrink-0 text-primary">{e.start.slice(5, 10)} {e.allDay ? "" : e.time}</span>
                 <span>{e.summary}</span>
               </li>
             ))}
           </ul>
         )}
-      </section>
+      </Card>
 
-      {/* Email */}
-      <section className="card">
-        <h2>📨 Inbox</h2>
+      {/* inbox */}
+      <Card className="p-5">
+        <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <Mail className="h-3.5 w-3.5" /> Inbox
+        </div>
         {connected ? (
-          <p style={{ margin: 0 }}>
-            <strong>{unread}</strong> unread.{" "}
-            <Link href="/dashboard/mail" style={{ color: "var(--accent)" }}>Open triage →</Link>
+          <p className="text-sm">
+            <span className="text-xl font-bold">{unread}</span> unread ·{" "}
+            <Link href="/dashboard/mail" className="text-primary">open triage →</Link>
           </p>
         ) : (
-          <p className="muted" style={{ margin: 0 }}><Link href="/dashboard/mail" style={{ color: "var(--accent)" }}>Connect Gmail →</Link></p>
+          <Link href="/dashboard/mail" className="text-sm text-primary">Connect Gmail →</Link>
         )}
-      </section>
+      </Card>
 
-      {/* Tasks — full inline CRUD */}
-      <section style={{ marginBottom: 8 }}>
-        <p className="eyebrow" style={{ marginBottom: 10 }}>Tasks · {open.length} open</p>
+      {/* habits glance */}
+      <div className="grid grid-cols-4 gap-3">
+        {TRACKED.map((h) => (
+          <Card key={h} className="p-3 text-center">
+            <div className={cn("text-xl font-bold", habitCount[h] && "text-good")}>{habitCount[h] || 0}×</div>
+            <div className="text-xs capitalize text-muted-foreground">{h}</div>
+          </Card>
+        ))}
+      </div>
+
+      {/* tasks — inline CRUD */}
+      <section>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tasks · {open.length} open</p>
         <CrudTable
           table="tasks"
           columns={[
@@ -82,41 +108,6 @@ export default async function Dashboard() {
           ]}
         />
       </section>
-
-      {/* Expenses */}
-      <section style={{ margin: "24px 0 8px" }}>
-        <p className="eyebrow" style={{ marginBottom: 10 }}>Expenses · ₹{spendTotal} this month</p>
-        <CrudTable
-          table="expenses"
-          columns={[
-            { key: "amount", label: "₹", type: "number", placeholder: "amount" },
-            { key: "item", label: "Item", type: "text", placeholder: "lunch…" },
-            { key: "category", label: "Category", type: "select", options: ["food", "travel", "work", "personal", "other"] },
-            { key: "spent_on", label: "Date", type: "date" },
-          ]}
-        />
-      </section>
-
-      {/* Habits */}
-      <section style={{ margin: "24px 0 8px" }}>
-        <p className="eyebrow" style={{ marginBottom: 10 }}>Habits · last 7 days</p>
-        <div className="stats" style={{ marginBottom: 12 }}>
-          {TRACKED_HABITS.map((h) => (
-            <div key={h} className="stat">
-              <div className={"num" + (habitCount[h] ? " good" : "")}>{habitCount[h] || 0}×</div>
-              <div className="lbl">{h}</div>
-            </div>
-          ))}
-        </div>
-        <CrudTable
-          table="habit_logs"
-          columns={[
-            { key: "habit", label: "Habit", type: "select", options: TRACKED_HABITS },
-            { key: "done_on", label: "Done on", type: "date" },
-            { key: "note", label: "Note", type: "text", placeholder: "optional" },
-          ]}
-        />
-      </section>
-    </>
+    </div>
   );
 }

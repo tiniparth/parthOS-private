@@ -1,6 +1,25 @@
-/* Parth OS — design system.
-   Vibe: clean · minimal · founder clarity · runner agility.
-   Dark, lots of breathing room, one confident accent, crisp type, snappy motion. */
+@import "tailwindcss";
+
+/* Map Tailwind color utilities to our existing design tokens (defined in :root below). */
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-card: var(--panel);
+  --color-card-foreground: var(--text);
+  --color-muted: var(--panel-2);
+  --color-muted-foreground: var(--muted);
+  --color-border: var(--border);
+  --color-input: var(--panel-2);
+  --color-primary: var(--accent);
+  --color-primary-foreground: #ffffff;
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-ring: var(--accent);
+}
+
+/* Parth OS — design system. Tailwind above; legacy utility classes below (kept
+   so existing pages keep rendering during the dashboard rebuild). */
 
 :root {
   --bg: #0a0a0b;
