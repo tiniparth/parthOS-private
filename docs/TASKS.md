@@ -44,4 +44,5 @@ Last updated: 2026-06-02
 - [x] Full-CRUD dashboard + daily command-center overview (calendar + inbox + inline CRUD)
 - [x] Gmail (read-only) connected + contextual triage (Mail page, /inbox, briefing)
 - [x] Google Calendar (read-only) connected — today/tomorrow on overview
+- [x] Google expansion: Drive (/find), Docs read, Sheets read+write, Calendar create (create_event action) — all scopes granted & verified
 - [x] Set up docs system (PRD, PROGRESS, TASKS)
