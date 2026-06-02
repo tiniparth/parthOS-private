@@ -1,0 +1,18 @@
+name: keep-warm
+# Pings the app every ~5 min so Vercel's serverless functions stay warm
+# (kills most cold-start lag). Free — runs on GitHub's schedulers.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Warm the app
+        run: |
+          for path in "/" "/dashboard" "/api/telegram"; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "https://parth-os-liard.vercel.app${path}" || echo "err")
+            echo "${path} -> ${code}"
+          done

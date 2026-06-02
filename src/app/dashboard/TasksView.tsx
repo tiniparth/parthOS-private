@@ -14,6 +14,7 @@ export default function TasksView() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState<any>({});
+  const [filterDate, setFilterDate] = useState("");
   const today = local();
 
   const load = useCallback(async () => {
@@ -69,7 +70,23 @@ export default function TasksView() {
         </div>
       </Card>
 
-      {loading ? <p className="text-sm text-muted-foreground">Loading…</p> : open.length === 0 ? <p className="text-sm text-muted-foreground">No open tasks. 🎉</p> : (
+      {/* date filter */}
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-muted-foreground">Show due on:</span>
+        <input className={cn(fieldClass, "h-8 w-auto")} type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
+        {filterDate && <button className="text-xs text-primary" onClick={() => setFilterDate("")}>clear</button>}
+      </div>
+
+      {loading ? (
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      ) : filterDate ? (
+        (() => {
+          const items = open.filter((t) => t.due_date === filterDate);
+          return items.length ? <div className="space-y-1.5">{items.map(Row)}</div> : <p className="text-sm text-muted-foreground">No tasks due {filterDate}.</p>;
+        })()
+      ) : open.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No open tasks. 🎉</p>
+      ) : (
         groups.map((g) => (
           <div key={g.key}>
             <p className={cn("mb-2 text-xs font-semibold uppercase tracking-wider", g.tone)}>{g.key} · {g.items.length}</p>
