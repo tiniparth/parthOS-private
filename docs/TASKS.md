@@ -13,7 +13,7 @@ Last updated: 2026-06-02
 
 ## ⭐ Known polish areas (dedicated passes later — flagged by Parth)
 - [ ] **Memory + triage quality** — the whole memory model + email triage ranking need real tuning (not a quick patch). Currently triage is a first cut.
-- [ ] **Dashboard visual polish** — design system is in; still needs refinement.
+- [ ] **Polish the dashboard to Parth's taste** — iterative look-and-feel pass *with Parth's eye*: layout, density, color/accent, what leads, the daily-first feel. Design system is in place; needs his direction to dial in the vibe (clean · minimal · founder clarity · runner agility).
 
 ## 🟡 Up next
 - [ ] Phase 6 polish: `/tasks` list + mark-done from chat, cleaner reply formatting
