@@ -106,9 +106,16 @@ anything I have to open the PC and manually file it. **Parth OS fixes this with 
 - [ ] **Parth's live test: "what do you know about me?"** ← current step
 - ✅ _Check: ask "what do you know about me?" → accurate; it uses context in replies._
 
-### Phase 5 — Daily briefing
-- [ ] `/api/cron/briefing` + Vercel cron (7am IST) → today's tasks + nudges to Telegram
+### Phase 5 — Daily briefing ✅
+- [x] `/api/cron/briefing` (auth via CRON_SECRET) + `vercel.json` cron `30 1 * * *` (07:00 IST)
+- [x] Weaves tasks + habits + spend into a warm brain-written briefing (plain fallback)
+- [x] Verified via manual trigger → delivered to Telegram
 - ✅ _Check: receive a morning briefing on my phone._
+
+### Bonus shipped beyond MVP
+- [x] Expense tracking (log_expense + monthly totals)
+- [x] Habit tracking (log_habit + 7-day summary, briefing nudges)
+- [x] Switchable brain: /smart (flash) · /fast (flash-lite) · /model
 
 ### Phase 6 — Polish
 - [ ] `/tasks`, mark-done, quick edits, nicer formatting

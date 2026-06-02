@@ -8,17 +8,14 @@ Last updated: 2026-06-02
 ---
 
 ## 🔴 In progress
-- [~] Run `settings` table SQL (Parth) → enables persistent /smart /fast brain switching
-- [~] Phase 3+4 live verification — Parth tests text + voice from phone (reliability fixes confirmed via simulated tests)
+- [~] Parth's daily real-world use of the MVP (text/voice capture, expenses, habits, briefing)
 
 ## 🟡 Up next
-- [ ] **Phase 5 — Daily briefing**: `/api/cron/briefing` + Vercel Cron (7am IST) → today's tasks + nudges to Telegram
-- [ ] Phase 6 polish: `/tasks` list, mark-done, cleaner reply formatting
-- [ ] Push repo to GitHub remote and keep synced after each step
+- [ ] Phase 6 polish: `/tasks` list + mark-done from chat, cleaner reply formatting
+- [ ] Expense categories (model often leaves category null) + currency handling
+- [ ] Confirm the 7am cron actually fires tomorrow morning
 
 ## 🟢 Backlog (post-MVP)
-- [ ] Habit tracking (running, reading, yoga, journalling) + streaks
-- [ ] Expense tracking (proper schema, not notes) — Parth already tried logging expenses
 - [ ] Gmail integration (triage, draft replies, summarize)
 - [ ] Google Calendar (create/read events from chat)
 - [ ] Granola meeting-notes integration
@@ -36,5 +33,8 @@ Last updated: 2026-06-02
 - [x] Fix: webhook 504s → instant 200 + `after()` background processing
 - [x] Fix: Gemini 429 rate-limit handling + runaway-generation guard
 - [x] Fix: free-tier model quotas — switched default to flash-lite; regenerate-on-truncation for reliable JSON
-- [x] Switchable brain: /smart (flash) · /fast (flash-lite) · /model (code shipped; needs settings SQL)
+- [x] Switchable brain: /smart (flash) · /fast (flash-lite) · /model
+- [x] Expense tracking (log_expense + monthly totals)
+- [x] Habit tracking (log_habit + 7-day summary)
+- [x] Phase 5 — daily briefing (Vercel Cron 07:00 IST; verified via manual trigger)
 - [x] Set up docs system (PRD, PROGRESS, TASKS)

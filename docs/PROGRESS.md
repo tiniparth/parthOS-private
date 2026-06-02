@@ -45,4 +45,9 @@ _Chronological record of what was actually built/changed. Newest first. See [PRD
 - flash-lite intermittently looped a field past the token cap → truncated JSON (esp. emotive phrasings like "Pandit Sir"). Fixes: bump output cap to 4096, **regenerate on parse failure** (stochastic loop usually clears), salvage the reply as last resort, and a hard "no rambling about people" prompt rule. Verified: the previously-breaking message now creates a clean task.
 - **Switchable brain** (Parth's idea): `settings` table + Telegram commands `/smart` (gemini-2.5-flash, ~20/day, meaty tasks), `/fast` (flash-lite, daily driver), `/model` (show current). Brain reads the active model per message; default flash-lite. Commands handled instantly (no quota spent). _Requires the `settings` table SQL to be run for the choice to persist._
 
-**Next:** Phase 5 — daily briefing (Vercel Cron).
+**Expenses + Habits + Daily briefing shipped (MVP complete)**
+- Expense tracking: `expenses` table, `log_expense` action (amount/item/category/date), monthly totals in context. Verified: "spent 250 on coffee + 80 on auto" → 2 rows.
+- Habit tracking: `habit_logs` table, `log_habit` action (running/reading/yoga/journalling), 7-day summary in context. Verified: "went for a run" → logged.
+- Phase 5 daily briefing: `/api/cron/briefing` (CRON_SECRET auth) + `vercel.json` cron `30 1 * * *` (07:00 IST). Weaves tasks + habits + spend into a warm brain-written message (plain fallback). Verified via manual trigger → delivered to Telegram.
+
+**MVP COMPLETE.** Open polish: expense categories, /tasks + mark-done from chat, confirm cron fires tomorrow.
