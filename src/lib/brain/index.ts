@@ -39,6 +39,7 @@ const SCHEMA = {
           summary: { type: "string" },
           when: { type: "string" },
           duration_min: { type: "number" },
+          attendees: { type: "array", items: { type: "string" } },
         },
         required: ["type"],
       },
@@ -116,7 +117,7 @@ YOUR JOB on each message:
    - "remember_fact" for durable facts about Parth, his work, people (e.g. Siddharth), or preferences worth remembering long-term. One sentence. Do NOT store one-off tasks as facts.
    - "log_expense" when Parth reports money spent. Extract a numeric "amount" (assume INR unless stated), a short "item" (e.g. "lunch"), and a "category" (food/travel/work/personal/etc). Resolve the date to "spent_on" (YYYY-MM-DD, default today). One message can contain multiple expenses → emit one log_expense each.
    - "log_habit" when Parth reports doing a habit. "habit" must be one of: running, reading, yoga, journalling (map "ran"→running, "read"→reading, "did yoga"→yoga, "journaled"→journalling). "done_on" = YYYY-MM-DD (default today).
-   - "create_event" when Parth wants something ON his calendar ("block/schedule/set up a meeting/call at <time>"). "summary" = short title, "when" = full ISO datetime WITH IST offset e.g. "2026-06-03T15:00:00+05:30" (resolve "3pm tomorrow" against today's date), "duration_min" = minutes (default 30). Use create_event for calendar blocking; use create_task for to-dos without a fixed time.
+   - "create_event" when Parth wants something ON his calendar ("block/schedule/set up a meeting/call at <time>"). "summary" = short title, "when" = full ISO datetime WITH IST offset e.g. "2026-06-03T15:00:00+05:30" (resolve "3pm tomorrow" against today's date), "duration_min" = minutes (default 30). If he wants to INVITE people, put their email addresses in "attendees" (array) — use emails from the facts/profile when he names a known person (e.g. Siddharth → siddharth@letsworkwise.com); include any email he types. Use create_event for calendar blocking; use create_task for to-dos without a fixed time.
    - You may emit multiple actions from one message, or none (e.g. if he just asks a question). Use the SPENDING and HABITS context below to answer questions like "what did I spend this week?" or "did I run enough?".
 3. Write the "reply" — match its depth to the message:
    - If Parth just CAPTURED something (task/expense/habit/event), confirm in ONE short line (e.g. "Got it — logged ₹250 coffee.").

@@ -56,21 +56,30 @@ export async function listUpcoming(daysAhead = 1): Promise<CalEvent[]> {
   });
 }
 
-/** Create an event. startISO can carry an offset (e.g. ...+05:30). */
-export async function createEvent(summary: string, startISO: string, durationMin = 30): Promise<boolean> {
+/** Create an event. startISO can carry an offset (e.g. ...+05:30).
+    If attendees (emails) are given, they're invited and Google emails them. */
+export async function createEvent(summary: string, startISO: string, durationMin = 30, attendees: string[] = []): Promise<boolean> {
   const token = await googleAccessToken();
   if (!token) return false;
   const start = new Date(startISO);
   if (isNaN(start.getTime())) return false;
   const end = new Date(start.getTime() + durationMin * 60000);
-  const res = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+
+  const valid = (attendees || []).map((e) => String(e).trim()).filter((e) => /.+@.+\..+/.test(e));
+  const body: Record<string, unknown> = {
+    summary,
+    start: { dateTime: start.toISOString(), timeZone: "Asia/Kolkata" },
+    end: { dateTime: end.toISOString(), timeZone: "Asia/Kolkata" },
+  };
+  if (valid.length) body.attendees = valid.map((email) => ({ email }));
+
+  // sendUpdates=all emails the invite to attendees.
+  const url = "https://www.googleapis.com/calendar/v3/calendars/primary/events" + (valid.length ? "?sendUpdates=all" : "");
+  const res = await fetch(url, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      summary,
-      start: { dateTime: start.toISOString(), timeZone: "Asia/Kolkata" },
-      end: { dateTime: end.toISOString(), timeZone: "Asia/Kolkata" },
-    }),
+    body: JSON.stringify(body),
   });
+  if (!res.ok) console.error("createEvent error:", res.status, await res.text().catch(() => ""));
   return res.ok;
 }

@@ -112,8 +112,9 @@ export async function executeActions(actions: Action[]): Promise<string[]> {
     } else if (a.type === "create_event") {
       const summary = a.summary || a.title || "(event)";
       if (!a.when) continue;
-      const ok = await createEvent(cap(String(summary), 200), String(a.when), Number(a.duration_min) || 30);
-      done.push(ok ? `event: ${summary}` : "event (calendar not connected?)");
+      const attendees = Array.isArray(a.attendees) ? a.attendees.map((x: any) => String(x)) : [];
+      const ok = await createEvent(cap(String(summary), 200), String(a.when), Number(a.duration_min) || 30, attendees);
+      done.push(ok ? `event: ${summary}${attendees.length ? ` (+${attendees.length} invited)` : ""}` : "event (calendar not connected?)");
     }
   }
   return done;

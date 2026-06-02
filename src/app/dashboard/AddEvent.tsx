@@ -17,9 +17,10 @@ export default function AddEvent() {
     if (!d.summary || !d.date || !d.time) return;
     setBusy(true);
     const when = `${d.date}T${d.time}:00+05:30`;
-    const res = await fetch("/api/calendar/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ summary: d.summary, when, duration_min: Number(d.duration) || 30 }) });
+    const attendees = String(d.invite || "").split(",").map((s: string) => s.trim()).filter(Boolean);
+    const res = await fetch("/api/calendar/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ summary: d.summary, when, duration_min: Number(d.duration) || 30, attendees }) });
     const j = await res.json();
-    if (res.ok && j.ok) { toast.success("Added to your calendar"); setD({ date: local(), time: "10:00", duration: 30 }); router.refresh(); }
+    if (res.ok && j.ok) { toast.success(attendees.length ? `Added + invited ${attendees.length}` : "Added to your calendar"); setD({ date: local(), time: "10:00", duration: 30 }); router.refresh(); }
     else toast.error("Couldn't add the event");
     setBusy(false);
   }
@@ -32,6 +33,10 @@ export default function AddEvent() {
         <div><label className="mb-1.5 block text-[11px] uppercase tracking-wide text-muted-foreground">Time</label><input className={fieldClass} type="time" value={d.time} onChange={(e) => setD({ ...d, time: e.target.value })} /></div>
         <div><label className="mb-1.5 block text-[11px] uppercase tracking-wide text-muted-foreground">Min</label><input className={fieldClass} type="number" value={d.duration} onChange={(e) => setD({ ...d, duration: e.target.value })} /></div>
         <Button onClick={add} disabled={busy}>{busy ? "…" : "+ Add"}</Button>
+      </div>
+      <div className="mt-3">
+        <label className="mb-1.5 block text-[11px] uppercase tracking-wide text-muted-foreground">Invite (emails, comma-separated — optional)</label>
+        <input className={fieldClass} placeholder="siddharth@letsworkwise.com, jamal@…" value={d.invite ?? ""} onChange={(e) => setD({ ...d, invite: e.target.value })} />
       </div>
     </Card>
   );
