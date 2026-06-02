@@ -3,6 +3,7 @@ import { googleAccessToken } from "./google";
 import { todayISO } from "./time";
 
 export interface CalEvent {
+  id: string;
   summary: string;
   start: string; // ISO or date
   time: string; // friendly time, "" for all-day
@@ -51,7 +52,7 @@ export async function listUpcoming(daysAhead = 1): Promise<CalEvent[]> {
         hour12: true,
       }).format(new Date(startRaw));
     }
-    return { summary: e.summary || "(no title)", start: startRaw, time, allDay } as CalEvent;
+    return { id: e.id, summary: e.summary || "(no title)", start: startRaw, time, allDay } as CalEvent;
   });
 }
 
