@@ -1,11 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 export default function ProfileEditor() {
   const [id, setId] = useState<string | null>(null);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
-  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     fetch("/api/crud/profile")
@@ -18,27 +19,26 @@ export default function ProfileEditor() {
   }, []);
 
   async function save() {
-    setSaved(false);
-    await fetch("/api/crud/profile", {
+    const res = await fetch("/api/crud/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, content }),
     });
-    setSaved(true);
+    if (res.ok) toast.success("Profile saved — the assistant uses this every message");
+    else toast.error("Couldn't save");
   }
 
-  if (loading) return <p style={{ opacity: 0.5 }}>Loading profile…</p>;
+  if (loading) return <p className="text-sm text-muted-foreground">Loading profile…</p>;
 
   return (
     <div>
       <textarea
         value={content}
-        onChange={(e) => { setContent(e.target.value); setSaved(false); }}
-        style={{ width: "100%", minHeight: 320, padding: 14, borderRadius: 10, border: "1px solid #333", background: "#0f0f11", color: "#e8e8ea", fontSize: 14, fontFamily: "inherit", lineHeight: 1.5, boxSizing: "border-box" }}
+        onChange={(e) => setContent(e.target.value)}
+        className="w-full min-h-[340px] rounded-xl border border-border bg-input p-4 text-sm leading-relaxed text-foreground focus:outline-none focus:border-primary transition-colors"
       />
-      <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 12 }}>
-        <button onClick={save} style={{ padding: "9px 18px", borderRadius: 8, border: "none", background: "#4f7cff", color: "#fff", cursor: "pointer" }}>Save profile</button>
-        {saved && <span style={{ color: "#3ecf8e", fontSize: 14 }}>Saved ✓ — the assistant uses this on every message.</span>}
+      <div className="mt-3">
+        <Button onClick={save}>Save profile</Button>
       </div>
     </div>
   );

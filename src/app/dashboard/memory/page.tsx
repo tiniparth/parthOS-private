@@ -6,9 +6,9 @@ export const dynamic = "force-dynamic";
 export default function MemoryPage() {
   return (
     <>
-      <h1 className="page-title" style={{ marginBottom: 18 }}>Memory</h1>
+      <h1 className="text-2xl font-semibold tracking-tight mb-5">Memory</h1>
 
-      <p className="eyebrow" style={{ marginBottom: 12 }}>Learned facts</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Learned facts</p>
       <CrudTable
         table="memory_facts"
         columns={[
@@ -17,7 +17,7 @@ export default function MemoryPage() {
         ]}
       />
 
-      <p className="eyebrow" style={{ margin: "30px 0 12px" }}>Profile — “Who is Parth”</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-8 mb-3">Profile — “Who is Parth”</p>
       <ProfileEditor />
     </>
   );
