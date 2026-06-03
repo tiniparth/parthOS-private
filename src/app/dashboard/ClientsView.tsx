@@ -9,6 +9,11 @@ import { cn } from "@/lib/utils";
 
 const STAGES = ["Qualify", "Discovery", "Spec", "Prototype", "Demo", "Commercial", "Close", "Production"];
 const stageIdx = (s: string) => { const i = STAGES.indexOf(s); return i < 0 ? 99 : i; };
+const STAGE_COLOR: Record<string, string> = {
+  Qualify: "bg-muted text-muted-foreground", Discovery: "bg-muted text-muted-foreground", Spec: "bg-muted text-muted-foreground",
+  Prototype: "bg-primary/15 text-primary", Demo: "bg-primary/15 text-primary",
+  Commercial: "bg-warn/15 text-warn", Close: "bg-good/15 text-good", Production: "bg-good/15 text-good",
+};
 
 type Client = { id: string; name: string; domain?: string; stage?: string; next_action?: string; blocker?: string; contact?: string; priority?: string; last_contact?: string };
 
@@ -73,7 +78,7 @@ export default function ClientsView() {
       ) : (
         <div className="space-y-3">
           {sorted.map((c) => (
-            <Card key={c.id} className="p-4">
+            <Card key={c.id} className={cn("p-4", c.priority === "high" && "border-l-2 border-l-danger")}>
               {editId === c.id ? (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -93,7 +98,7 @@ export default function ClientsView() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">{c.name}</span>
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{c.stage || "—"}</span>
+                      <span className={cn("rounded-full px-2 py-0.5 text-xs", STAGE_COLOR[c.stage || ""] || "bg-muted text-muted-foreground")}>{c.stage || "—"}</span>
                       {c.priority === "high" && <span className="rounded-full bg-danger/15 px-2 py-0.5 text-xs text-danger">priority</span>}
                     </div>
                     <div className="flex gap-2">

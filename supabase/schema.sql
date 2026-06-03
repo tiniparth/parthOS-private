@@ -93,6 +93,26 @@ create table if not exists clients (
   updated_at   timestamptz not null default now()
 );
 
+-- People (contacts directory).
+create table if not exists people (
+  id uuid primary key default gen_random_uuid(),
+  name text not null, email text, role text, company text, relationship text,
+  last_contact date, notes text,
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+);
+-- Goals (direction + progress).
+create table if not exists goals (
+  id uuid primary key default gen_random_uuid(),
+  title text not null, why text, status text default 'active', target_date date, progress int default 0,
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+);
+-- Journal (daily reflections).
+create table if not exists journal (
+  id uuid primary key default gen_random_uuid(),
+  entry text not null, entry_date date not null default current_date, mood text,
+  created_at timestamptz not null default now()
+);
+
 -- Security: enable RLS with NO policies. The anon/publishable key is then
 -- blocked from every table; our server uses the service_role key, which
 -- bypasses RLS. So nothing is publicly readable.
@@ -105,3 +125,6 @@ alter table settings     enable row level security;
 alter table expenses     enable row level security;
 alter table habit_logs   enable row level security;
 alter table clients      enable row level security;
+alter table people       enable row level security;
+alter table goals        enable row level security;
+alter table journal      enable row level security;

@@ -4,6 +4,13 @@ _Chronological record of what was actually built/changed. Newest first. See [PRD
 
 ---
 
+## 2026-06-03 — Product-leader pass: the "work core" + more modules
+- **Clients/Pipeline** module (stage · next action · blocker · contact · last contact · priority), seeded with the 5 real clients from the Workwise Brain. Dark dropdown rendering fix (`color-scheme: dark` + custom select chevron) + stage-colored badges + high-priority accent.
+- **People** (contacts directory), **Goals** (with progress bars), **Journal** (daily entries) modules added.
+- Dashboard niceties: floating **+ quick-add FAB** (add anything → brain routes), **calendar invites with attendees** (sendUpdates=all), **task editing** (inline + one-tap Today/Tomorrow), **Expenses** upgrade (month nav + edit + category filter + vs-last-month), **mobile hamburger nav**, **search**, **bento Today** with streamed schedule/inbox + per-event done-marking, keep-warm Action.
+- CRUD allowlist now covers clients/people/goals/journal. New tables: clients, people, goals, journal.
+- Open: scope **proactive nudges (#4)** with Parth; memory/triage polish; cold-start.
+
 ## 2026-06-02 — Session close (built the whole thing in one day)
 From "I want a personal assistant" → a live dual cloud+local personal OS on ₹0.
 - **Cloud (Parth OS):** Telegram @tiniparth_bot (text+voice) + Next.js/Vercel + Supabase. Captures tasks/notes/facts/expenses/habits; daily briefing; `/inbox` `/find` `/doc` `/smart` `/fast`.
