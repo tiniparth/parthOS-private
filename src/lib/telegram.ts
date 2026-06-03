@@ -35,18 +35,10 @@ export async function sendTyping(chatId: number | string) {
   }).catch(() => {});
 }
 
-const MIME_BY_EXT: Record<string, string> = {
-  ogg: "audio/ogg", oga: "audio/ogg", opus: "audio/opus", mp3: "audio/mpeg",
-  mpeg: "audio/mpeg", mpga: "audio/mpeg", m4a: "audio/mp4", mp4: "audio/mp4",
-  aac: "audio/aac", wav: "audio/wav", webm: "audio/webm", flac: "audio/flac",
-};
-
-/** Download a Telegram file and return it base64-encoded, with the MIME inferred
-    from the file extension (voice notes are OGG; recordings may be mp3/m4a/wav).
-    Telegram's Bot API only serves files up to 20 MB → returns null if too big. */
+/** Download a Telegram file (e.g. a voice note) and return it base64-encoded.
+    Telegram voice notes are OGG/Opus. */
 export async function downloadFileAsBase64(
-  fileId: string,
-  mimeHint?: string
+  fileId: string
 ): Promise<{ base64: string; mime: string } | null> {
   const metaRes = await fetch(api("getFile"), {
     method: "POST",
@@ -54,16 +46,12 @@ export async function downloadFileAsBase64(
     body: JSON.stringify({ file_id: fileId }),
   });
   const meta = await metaRes.json();
-  if (!meta.ok) return null; // includes "file is too big" (>20 MB)
+  if (!meta.ok) return null;
 
-  const filePath: string = meta.result.file_path || "";
-  const ext = filePath.split(".").pop()?.toLowerCase() || "";
-  const mime = MIME_BY_EXT[ext] || mimeHint || "audio/ogg";
-
-  const fileUrl = `https://api.telegram.org/file/bot${env.telegramToken()}/${filePath}`;
+  const fileUrl = `https://api.telegram.org/file/bot${env.telegramToken()}/${meta.result.file_path}`;
   const fileRes = await fetch(fileUrl);
   if (!fileRes.ok) return null;
 
   const buf = Buffer.from(await fileRes.arrayBuffer());
-  return { base64: buf.toString("base64"), mime };
+  return { base64: buf.toString("base64"), mime: "audio/ogg" };
 }
