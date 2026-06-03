@@ -71,10 +71,22 @@ export async function createEvent(summary: string, startISO: string, durationMin
     start: { dateTime: start.toISOString(), timeZone: "Asia/Kolkata" },
     end: { dateTime: end.toISOString(), timeZone: "Asia/Kolkata" },
   };
-  if (valid.length) body.attendees = valid.map((email) => ({ email }));
+  if (valid.length) {
+    body.attendees = valid.map((email) => ({ email }));
+    // Default: any meeting WITH someone gets a Google Meet link attached.
+    body.conferenceData = {
+      createRequest: {
+        requestId: `parthos-${start.getTime()}-${Math.random().toString(36).slice(2, 10)}`,
+        conferenceSolutionKey: { type: "hangoutsMeet" },
+      },
+    };
+  }
 
-  // sendUpdates=all emails the invite to attendees.
-  const url = "https://www.googleapis.com/calendar/v3/calendars/primary/events" + (valid.length ? "?sendUpdates=all" : "");
+  // sendUpdates=all emails the invite to attendees; conferenceDataVersion=1 is required to create the Meet link.
+  const params = new URLSearchParams();
+  if (valid.length) { params.set("sendUpdates", "all"); params.set("conferenceDataVersion", "1"); }
+  const qs = params.toString();
+  const url = "https://www.googleapis.com/calendar/v3/calendars/primary/events" + (qs ? `?${qs}` : "");
   const res = await fetch(url, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
