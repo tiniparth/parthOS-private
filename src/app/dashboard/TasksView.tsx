@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Pencil } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { fieldClass } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 const local = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+const addDays = (iso: string, n: number) => { const d = new Date(iso + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 const PRIO: Record<string, string> = { high: "bg-danger", med: "bg-warn", low: "bg-muted-foreground" };
 
 export default function TasksView() {
@@ -15,6 +16,8 @@ export default function TasksView() {
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState<any>({});
   const [filterDate, setFilterDate] = useState("");
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<any>({});
   const today = local();
 
   const load = useCallback(async () => {
@@ -48,16 +51,41 @@ export default function TasksView() {
     const r = await fetch(`/api/crud/tasks?id=${id}`, { method: "DELETE" });
     if (r.ok) toast.success("Deleted"); else { toast.error("Couldn't delete"); load(); }
   }
+  function startEdit(t: any) {
+    setEditId(t.id);
+    setEditDraft({ title: t.title, due_date: t.due_date || "", priority: t.priority || "" });
+  }
+  async function saveEdit() {
+    const r = await fetch("/api/crud/tasks", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: editId, title: editDraft.title, due_date: editDraft.due_date || null, priority: editDraft.priority || null }) });
+    if (r.ok) { toast.success("Updated"); setEditId(null); load(); } else toast.error("Couldn't update");
+  }
 
-  const Row = (t: any) => (
-    <div key={t.id} className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5">
-      <button onClick={() => setDone(t.id, t.status !== "done")} className={cn("h-4 w-4 shrink-0 rounded border transition-colors", t.status === "done" ? "border-good bg-good" : "border-muted-foreground hover:border-good")} aria-label="toggle done" />
-      {t.priority && <span className={cn("h-2 w-2 shrink-0 rounded-full", PRIO[t.priority] || "bg-muted-foreground")} title={t.priority} />}
-      <span className={cn("flex-1 text-sm", t.status === "done" && "line-through opacity-50")}>{t.title}</span>
-      {t.due_date && <span className="text-xs text-muted-foreground">{t.due_date}</span>}
-      <button onClick={() => del(t.id)} className="text-muted-foreground hover:text-danger" aria-label="delete"><Trash2 className="h-4 w-4" /></button>
-    </div>
-  );
+  const Row = (t: any) =>
+    editId === t.id ? (
+      <div key={t.id} className="space-y-2 rounded-lg border border-primary/40 bg-card p-3">
+        <input className={fieldClass} value={editDraft.title ?? ""} onChange={(e) => setEditDraft({ ...editDraft, title: e.target.value })} placeholder="Task" />
+        <div className="flex flex-wrap items-center gap-2">
+          <input className={cn(fieldClass, "h-8 w-auto")} type="date" value={editDraft.due_date ?? ""} onChange={(e) => setEditDraft({ ...editDraft, due_date: e.target.value })} />
+          <button className="rounded-full bg-muted px-2.5 py-1 text-xs hover:text-foreground" onClick={() => setEditDraft({ ...editDraft, due_date: today })}>Today</button>
+          <button className="rounded-full bg-muted px-2.5 py-1 text-xs hover:text-foreground" onClick={() => setEditDraft({ ...editDraft, due_date: addDays(today, 1) })}>Tomorrow</button>
+          <button className="rounded-full bg-muted px-2.5 py-1 text-xs hover:text-foreground" onClick={() => setEditDraft({ ...editDraft, due_date: "" })}>Clear</button>
+          <select className={cn(fieldClass, "h-8 w-auto")} value={editDraft.priority ?? ""} onChange={(e) => setEditDraft({ ...editDraft, priority: e.target.value })}><option value="">— priority</option><option>low</option><option>med</option><option>high</option></select>
+          <div className="ml-auto flex gap-2">
+            <Button size="sm" variant="good" onClick={saveEdit}>Save</Button>
+            <Button size="sm" variant="ghost" onClick={() => setEditId(null)}>Cancel</Button>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <div key={t.id} className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5">
+        <button onClick={() => setDone(t.id, t.status !== "done")} className={cn("h-4 w-4 shrink-0 rounded border transition-colors", t.status === "done" ? "border-good bg-good" : "border-muted-foreground hover:border-good")} aria-label="toggle done" />
+        {t.priority && <span className={cn("h-2 w-2 shrink-0 rounded-full", PRIO[t.priority] || "bg-muted-foreground")} title={t.priority} />}
+        <span className={cn("flex-1 text-sm", t.status === "done" && "line-through opacity-50")}>{t.title}</span>
+        {t.due_date && <span className="text-xs text-muted-foreground">{t.due_date}</span>}
+        <button onClick={() => startEdit(t)} className="text-muted-foreground hover:text-primary" aria-label="edit"><Pencil className="h-4 w-4" /></button>
+        <button onClick={() => del(t.id)} className="text-muted-foreground hover:text-danger" aria-label="delete"><Trash2 className="h-4 w-4" /></button>
+      </div>
+    );
 
   return (
     <div className="space-y-5">
