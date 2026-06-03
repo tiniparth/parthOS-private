@@ -78,12 +78,20 @@ export async function executeActions(actions: Action[]): Promise<string[]> {
   for (const rawAction of actions) {
     const a = normalize(rawAction) as any;
     if (a.type === "create_task") {
-      const title = a.title || a.content || a.fact;
+      let title = a.title || a.content || a.fact;
       if (!title) continue;
+      let dueDate = a.due_date || null;
+      // Backstop: if the brain baked a date into the title instead of the
+      // due_date field (e.g. "… — due 2026-06-04"), salvage it.
+      const m = title.match(/\s*[—\-–]\s*due\s+(\d{4}-\d{2}-\d{2})\s*$/i);
+      if (m) {
+        if (!dueDate) dueDate = m[1];
+        title = title.slice(0, m.index).trim();
+      }
       // Safety net against runaway generation.
       await sb.from("tasks").insert({
         title: cap(title, 250),
-        due_date: a.due_date || null,
+        due_date: dueDate,
         priority: a.priority || null,
       });
       done.push(`task: ${cap(title, 60)}`);
