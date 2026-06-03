@@ -4,6 +4,14 @@ _Chronological record of what was actually built/changed. Newest first. See [PRD
 
 ---
 
+## 2026-06-03 (pm) — Reliability fixes · retrospective spine · call-notes tool spun out
+- **Fix — task due-dates:** the brain was baking resolved dates into task titles ("… — due 2026-06-04") with `due_date` left null. Tightened the create_task prompt (explicit `due_date` field, right/wrong example, "one date for a list applies to every task") + a deterministic backstop in `executeActions` that salvages a trailing "— due YYYY-MM-DD" into the field. Cleaned the 5 affected rows.
+- **Calendar default — auto Meet link:** any event WITH attendees now auto-attaches a Google Meet link (`conferenceData` + `conferenceDataVersion=1`). Solo time-blocks unchanged. Both creation paths (Telegram brain + dashboard) funnel through one `createEvent`. Saved as a standing preference.
+- **Retrospective spine (backend-only — for appraisal / resume / ISB):** new `milestones` table (append-only dated achievements) + `digests` table. Brain auto-detects genuine achievements (`log_milestone` — selective, transparent one-line note, never routine tasks). The weekly consolidate cron now ALSO reads the week's real activity (milestones, completed tasks, habits, spend, messages) and writes a "week in review" narrative to `digests` + sends it on Telegram. No dashboard clutter (per Parth's instruction). Report generator deferred — built when first needed; data accumulates from now. _SQL for `milestones` + `digests` run by Parth._
+- **Call-recording → action items: SPUN OUT into a separate product.** A Telegram call pipeline was briefly built, then **reverted** — Parth wants this as a standalone, multi-user **web portal** for him + Workwise teammates (any-language). Scope locked: Google sign-in restricted to `@letsworkwise.com`, **"transcribe & extract" v1** (transcript + summary + action items + shareable per-meeting link), **separate repo / Supabase / Vercel**, all free tiers. Built in its own folder + Claude Code session (handoff brief delivered).
+- **Process rule (Parth):** finalize scope with him *before* building a feature — not after.
+- Open: scope **proactive nudges (#4)**; build the milestone **report generator** when first needed; (separate) the call-notes portal.
+
 ## 2026-06-03 — Product-leader pass: the "work core" + more modules
 - **Clients/Pipeline** module (stage · next action · blocker · contact · last contact · priority), seeded with the 5 real clients from the Workwise Brain. Dark dropdown rendering fix (`color-scheme: dark` + custom select chevron) + stage-colored badges + high-priority accent.
 - **People** (contacts directory), **Goals** (with progress bars), **Journal** (daily entries) modules added.

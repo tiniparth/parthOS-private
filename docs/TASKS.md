@@ -3,7 +3,7 @@
 _The realtime task board. Updated as we work. `[ ]` open · `[~]` in progress · `[x]` done._
 _High-level phases live in [PLAN.md](PLAN.md); this is the granular working list._
 
-Last updated: 2026-06-02
+Last updated: 2026-06-03
 
 ---
 
@@ -15,6 +15,7 @@ Last updated: 2026-06-02
 - [x] **Dashboard revamp — DONE.** Tailwind v4 + shadcn-style, sidebar shell, purpose-built views for every domain: Today (command center w/ focus + web quick-capture), Tasks (grouped overdue/today/upcoming + quick-add), Calendar (agenda + add event), Mail (triage), Expenses (totals + category bars), Habits (streak rings), Notes, Memory. Toasts throughout. Iterative taste-tuning + ⌘K/light-mode still optional.
 
 ## 🟡 Up next
+- [ ] **Milestone report generator** — time-scoped pull across `milestones` + completed tasks + `digests` + goal/habit deltas → a structured appraisal/resume/ISB narrative ("give me my June/quarter report"). Capture is LIVE; build the generator when Parth first needs it.
 - [ ] **Granola (free tier)** — no API on free (API needs Business plan). Path: Zapier → Google Doc → Parth OS reads via Drive; or one-time manual pull. Pending Parth's choice.
 - [ ] Confirm the 7am cron fires tomorrow morning
 - [ ] Sheets: wire to a specific spreadsheet (e.g. expense tracker) — needs Parth to name the sheet
@@ -30,7 +31,13 @@ Last updated: 2026-06-02
 - [ ] Upgrade brain Gemini → Claude (better quality; paid, no training on data)
 - [ ] WhatsApp channel (later)
 
+## 🔵 Separate product (not Parth OS)
+- [ ] **Call-notes web portal** — standalone multi-user tool for Parth + Workwise team: upload a call recording (any language) → transcript + summary + action items + shareable link. Google sign-in (@letsworkwise.com), own repo/Supabase/Vercel, free tiers. Built in its own folder + Claude Code session. _Scope locked; build happens there, not here._
+
 ## ✅ Done
+- [x] Fix: task due-dates land in `due_date` (not baked into the title) — prompt + backstop
+- [x] Calendar: auto-attach a Google Meet link to any event with attendees
+- [x] Retrospective spine: `milestones` auto-capture + weekly "week in review" digest (backend-only)
 - [x] Phase 0 — accounts & keys (Telegram, Gemini, Supabase, GitHub)
 - [x] Phase 1 — Next.js scaffold + Supabase schema (5 tables live)
 - [x] Phase 2 — Telegram webhook, deployed to Vercel, locked to Parth's chat id
