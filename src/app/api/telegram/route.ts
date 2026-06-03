@@ -150,9 +150,18 @@ async function handleMessage(update: unknown, msg: any, chatId: number) {
     const result = await think({ text: userText });
 
     await logCapture(voice ? "voice" : "text", userText, update);
-    await executeActions(result.actions);
+    const done = await executeActions(result.actions);
 
-    await sendMessage(chatId, result.reply);
+    // Surface the Meet link (or flag a missing one) right in the reply, so an
+    // invite is never reported as "done" without you seeing its link.
+    let reply = result.reply;
+    for (const l of done.filter((d) => d.startsWith("event:"))) {
+      const link = l.match(/https:\/\/meet\.google\.com\/\S+/)?.[0];
+      if (link) reply += `\n\n🔗 Meet: ${link}`;
+      else if (l.includes("no Meet link")) reply += `\n\n⚠️ I couldn't attach a Meet link to that invite — add one manually.`;
+    }
+
+    await sendMessage(chatId, reply);
   } catch (err) {
     console.error("handleMessage error:", err);
     if (err instanceof GeminiRateLimitError) {

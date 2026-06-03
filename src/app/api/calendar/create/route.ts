@@ -9,6 +9,6 @@ export async function POST(req: NextRequest) {
   const { summary, when, duration_min, attendees } = await req.json().catch(() => ({}));
   if (!summary || !when) return NextResponse.json({ ok: false, reason: "summary + when required" }, { status: 400 });
   const list = Array.isArray(attendees) ? attendees : String(attendees || "").split(",").map((s) => s.trim()).filter(Boolean);
-  const ok = await createEvent(String(summary), String(when), Number(duration_min) || 30, list);
-  return NextResponse.json({ ok });
+  const r = await createEvent(String(summary), String(when), Number(duration_min) || 30, list);
+  return NextResponse.json({ ok: r.ok, meetLink: r.meetLink, htmlLink: r.htmlLink });
 }

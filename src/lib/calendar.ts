@@ -56,13 +56,20 @@ export async function listUpcoming(daysAhead = 1): Promise<CalEvent[]> {
   });
 }
 
+export interface CreateEventResult {
+  ok: boolean;
+  meetLink?: string; // Google Meet URL, present when attendees were invited
+  htmlLink?: string; // link to the event in Google Calendar
+}
+
 /** Create an event. startISO can carry an offset (e.g. ...+05:30).
-    If attendees (emails) are given, they're invited and Google emails them. */
-export async function createEvent(summary: string, startISO: string, durationMin = 30, attendees: string[] = []): Promise<boolean> {
+    If attendees (emails) are given, they're invited (Google emails them) and a
+    Google Meet link is attached. Returns the Meet link so callers can surface it. */
+export async function createEvent(summary: string, startISO: string, durationMin = 30, attendees: string[] = []): Promise<CreateEventResult> {
   const token = await googleAccessToken();
-  if (!token) return false;
+  if (!token) return { ok: false };
   const start = new Date(startISO);
-  if (isNaN(start.getTime())) return false;
+  if (isNaN(start.getTime())) return { ok: false };
   const end = new Date(start.getTime() + durationMin * 60000);
 
   const valid = (attendees || []).map((e) => String(e).trim()).filter((e) => /.+@.+\..+/.test(e));
@@ -92,6 +99,16 @@ export async function createEvent(summary: string, startISO: string, durationMin
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  if (!res.ok) console.error("createEvent error:", res.status, await res.text().catch(() => ""));
-  return res.ok;
+  if (!res.ok) {
+    console.error("createEvent error:", res.status, await res.text().catch(() => ""));
+    return { ok: false };
+  }
+  // Read the Meet link straight back from the response (it provisions immediately,
+  // verified). conferenceData.entryPoints is the fallback if hangoutLink is absent.
+  const ev = await res.json().catch(() => ({} as any));
+  const meetLink =
+    ev.hangoutLink ||
+    ev.conferenceData?.entryPoints?.find((p: any) => p.entryPointType === "video")?.uri ||
+    undefined;
+  return { ok: true, meetLink, htmlLink: ev.htmlLink };
 }

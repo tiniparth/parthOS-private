@@ -127,8 +127,15 @@ export async function executeActions(actions: Action[]): Promise<string[]> {
       const summary = a.summary || a.title || "(event)";
       if (!a.when) continue;
       const attendees = Array.isArray(a.attendees) ? a.attendees.map((x: any) => String(x)) : [];
-      const ok = await createEvent(cap(String(summary), 200), String(a.when), Number(a.duration_min) || 30, attendees);
-      done.push(ok ? `event: ${summary}${attendees.length ? ` (+${attendees.length} invited)` : ""}` : "event (calendar not connected?)");
+      const r = await createEvent(cap(String(summary), 200), String(a.when), Number(a.duration_min) || 30, attendees);
+      if (r.ok) {
+        let line = `event: ${summary}${attendees.length ? ` (+${attendees.length} invited)` : ""}`;
+        if (r.meetLink) line += ` 🔗 ${r.meetLink}`;
+        else if (attendees.length) line += ` ⚠️ no Meet link attached`;
+        done.push(line);
+      } else {
+        done.push("event (calendar not connected?)");
+      }
     } else if (a.type === "log_milestone") {
       const title = a.title || a.content || a.fact;
       if (!title) continue;
