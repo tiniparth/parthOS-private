@@ -7,7 +7,8 @@ export type Action =
   | { type: "remember_fact"; category?: string | null; fact: string }
   | { type: "log_expense"; amount: number; item?: string | null; category?: string | null; spent_on?: string | null }
   | { type: "log_habit"; habit: string; done_on?: string | null }
-  | { type: "create_event"; summary: string; when: string; duration_min?: number | null; attendees?: string[] | null };
+  | { type: "create_event"; summary: string; when: string; duration_min?: number | null; attendees?: string[] | null }
+  | { type: "log_milestone"; kind?: string | null; area?: string | null; title: string; detail?: string | null; impact?: string | null; happened_on?: string | null };
 
 export interface BrainResult {
   reply: string;

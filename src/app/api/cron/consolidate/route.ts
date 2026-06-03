@@ -69,12 +69,59 @@ Return JSON: {"facts":[{"category":"work|people|preference|personal","fact":"...
     if (f?.fact) await sb.from("memory_facts").insert({ category: f.category || null, fact: String(f.fact).slice(0, 500) });
   }
 
+  // --- Weekly "week in review" digest. Reads the week's real activity and writes
+  //     a narrative to `digests` automatically — the spine of future retrospectives. ---
+  const weekStart = weekAgo.slice(0, 10);
+  let digestSummary = "";
+  try {
+    const [doneRes, mileRes, habRes, expRes] = await Promise.all([
+      sb.from("tasks").select("title,done_at").eq("status", "done").gte("done_at", weekAgo).order("done_at", { ascending: false }).limit(100),
+      sb.from("milestones").select("kind,area,title,impact,happened_on").gte("happened_on", weekStart).order("happened_on", { ascending: false }).limit(50),
+      sb.from("habit_logs").select("habit").gte("done_on", weekStart).limit(300),
+      sb.from("expenses").select("amount").gte("spent_on", weekStart).limit(500),
+    ]);
+    const doneTasks = (doneRes.data ?? []).map((t) => `- ${t.title}`).join("\n") || "(none completed)";
+    const milestones = (mileRes.data ?? []).map((m: any) => `- [${m.kind || "milestone"}/${m.area || "?"}] ${m.title}${m.impact ? ` — ${m.impact}` : ""}`).join("\n") || "(none logged)";
+    const habitCounts: Record<string, number> = {};
+    for (const h of habRes.data ?? []) habitCounts[h.habit] = (habitCounts[h.habit] || 0) + 1;
+    const habitStr = Object.entries(habitCounts).map(([h, n]) => `${h} ×${n}`).join(", ") || "(none)";
+    const spendTotal = (expRes.data ?? []).reduce((s, e) => s + Number(e.amount || 0), 0);
+
+    const digestSys = `You write a tight WEEK IN REVIEW for Parth — factual, specific, in HIS voice as accomplishments (for a future appraisal/resume/ISB record). Use ONLY the data given; do not invent. 4-7 lines max. Lead with what he SHIPPED/WON/ACHIEVED, then meaningful progress, then a one-line note on habits/spend if notable. No fluff, no praise-padding. If a week was quiet, say so honestly and briefly.
+Return JSON: {"summary":"the narrative paragraph/bullets","highlights":["3-6 crisp resume-style bullets of the week's real wins"]}`;
+    const digestUser = `Week ${weekStart} → ${today}.
+MILESTONES LOGGED:
+${milestones}
+TASKS COMPLETED:
+${doneTasks}
+HABITS: ${habitStr}
+SPEND THIS WEEK: ₹${spendTotal}
+THIS WEEK'S MESSAGES (context):
+${captures.slice(0, 120).join("\n")}`;
+
+    const DIGEST_SCHEMA = { type: "object", properties: { summary: { type: "string" }, highlights: { type: "array", items: { type: "string" } } }, required: ["summary"] };
+    const dout = await generateJSON(digestSys, [{ text: digestUser }], DIGEST_SCHEMA);
+    digestSummary = String(dout.summary || "").slice(0, 4000);
+    if (digestSummary) {
+      await sb.from("digests").insert({
+        period: "week",
+        period_start: weekStart,
+        period_end: today,
+        summary: digestSummary,
+        highlights: Array.isArray(dout.highlights) ? dout.highlights.slice(0, 8) : null,
+      });
+    }
+  } catch (e) {
+    console.error("weekly digest failed:", e);
+  }
+
   const chatId = env.allowedChatId();
   if (chatId) {
-    const body = facts.length
+    const memoryPart = facts.length
       ? `🧠 Weekly memory update\n\n${out.summary || ""}\n\nLearned & saved:\n${facts.map((f: any) => `• ${f.fact}`).join("\n")}`
       : `🧠 Weekly memory check — nothing new to add. ${out.summary || ""}`;
-    await sendMessage(chatId, body);
+    const reviewPart = digestSummary ? `\n\n📅 Week in review\n\n${digestSummary}` : "";
+    await sendMessage(chatId, memoryPart + reviewPart);
   }
-  return NextResponse.json({ ok: true, learned: facts.length });
+  return NextResponse.json({ ok: true, learned: facts.length, digest: !!digestSummary });
 }

@@ -66,7 +66,7 @@ export async function executeActions(actions: Action[]): Promise<string[]> {
   const sb = db();
   const done: string[] = [];
   const cap = (s: string, n: number) => (s.length > n ? s.slice(0, n) : s);
-  const KNOWN = ["create_task", "create_note", "remember_fact", "log_expense", "log_habit", "create_event"];
+  const KNOWN = ["create_task", "create_note", "remember_fact", "log_expense", "log_habit", "create_event", "log_milestone"];
   // Some models (e.g. Llama via Groq) nest fields under the type name:
   // { create_event: {...} } instead of { type:"create_event", ... }. Flatten that.
   const normalize = (raw: any): any => {
@@ -129,6 +129,19 @@ export async function executeActions(actions: Action[]): Promise<string[]> {
       const attendees = Array.isArray(a.attendees) ? a.attendees.map((x: any) => String(x)) : [];
       const ok = await createEvent(cap(String(summary), 200), String(a.when), Number(a.duration_min) || 30, attendees);
       done.push(ok ? `event: ${summary}${attendees.length ? ` (+${attendees.length} invited)` : ""}` : "event (calendar not connected?)");
+    } else if (a.type === "log_milestone") {
+      const title = a.title || a.content || a.fact;
+      if (!title) continue;
+      const row: Record<string, unknown> = {
+        title: cap(String(title), 200),
+        kind: a.kind ? cap(String(a.kind), 30) : null,
+        area: a.area ? cap(String(a.area), 30) : null,
+        detail: a.detail ? cap(String(a.detail), 1000) : null,
+        impact: a.impact ? cap(String(a.impact), 500) : null,
+      };
+      if (a.happened_on) row.happened_on = a.happened_on; // else DB defaults to today
+      await sb.from("milestones").insert(row);
+      done.push(`milestone: ${cap(String(title), 60)}`);
     }
   }
   return done;

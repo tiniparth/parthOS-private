@@ -113,6 +113,33 @@ create table if not exists journal (
   created_at timestamptz not null default now()
 );
 
+-- Milestones / achievements — the dated record of what Parth shipped, won, and
+-- achieved. Auto-captured by the brain (never derived from routine tasks). This
+-- is the spine of any appraisal / resume / ISB retrospective. Append-only.
+create table if not exists milestones (
+  id          uuid primary key default gen_random_uuid(),
+  kind        text,                          -- shipped | won | achieved | milestone | recognition
+  area        text,                          -- workwise | work | isb | personal | health
+  title       text not null,                 -- the achievement, one line
+  detail      text,
+  impact      text,                          -- why it mattered / the number
+  happened_on date not null default current_date,
+  source      text default 'telegram',
+  created_at  timestamptz not null default now()
+);
+
+-- Periodic digests — the weekly cron writes a "week in review" narrative here.
+-- Accumulates into a quarterly/yearly story so reports stitch summaries, not raw rows.
+create table if not exists digests (
+  id           uuid primary key default gen_random_uuid(),
+  period       text not null default 'week', -- week | month | quarter
+  period_start date,
+  period_end   date,
+  summary      text not null,                 -- the narrative
+  highlights   jsonb,                         -- optional structured bullets
+  created_at   timestamptz not null default now()
+);
+
 -- Security: enable RLS with NO policies. The anon/publishable key is then
 -- blocked from every table; our server uses the service_role key, which
 -- bypasses RLS. So nothing is publicly readable.
@@ -128,3 +155,5 @@ alter table clients      enable row level security;
 alter table people       enable row level security;
 alter table goals        enable row level security;
 alter table journal      enable row level security;
+alter table milestones   enable row level security;
+alter table digests      enable row level security;
