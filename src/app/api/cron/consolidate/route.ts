@@ -33,15 +33,26 @@ export async function GET(req: NextRequest) {
     sb.from("profile").select("content").limit(1),
     sb.from("memory_facts").select("fact").order("created_at", { ascending: false }).limit(120),
   ]);
-  const captures = (capRes.data ?? []).map((c) => c.raw).filter(Boolean);
+  const captures = (capRes.data ?? [])
+    .map((c) => c.raw)
+    .filter(Boolean)
+    .filter((r: string) => !/sanitycheck|diagnostic|claude (live )?test|ping from claude|whats my (top|single)/i.test(r));
   if (captures.length === 0) return NextResponse.json({ ok: true, note: "no captures this week" });
 
   const profile = profRes.data?.[0]?.content ?? "";
   const known = (factRes.data ?? []).map((f) => `- ${f.fact}`).join("\n");
 
-  const sys = `You maintain Parth's long-term memory. From his messages this past week, extract genuinely NEW, durable facts about HIM — preferences, people, relationships, work changes, recurring patterns, life context — that are NOT already in the profile or known facts.
-IGNORE one-off tasks, expenses, and events (those are tracked elsewhere). Only lasting things worth remembering. Max 8. If nothing new, return an empty list.
-Also write a one-line "summary" of what you learned (or "Nothing new this week.").
+  const sys = `You curate Parth's long-term memory. From his messages this past week, extract ONLY genuinely NEW, TIMELESS facts about HIM that aren't already known.
+
+A durable fact is true regardless of any date — a relationship ("works with Prince on the INA prototype"), a role, a stable preference ("prefers morning calls"), a lasting life/work context.
+
+STRICTLY REJECT (do NOT extract) anything that is:
+- tied to a specific time or date, or contains "tomorrow / at 3pm / on June X" → that's a scheduled event, NOT a fact
+- a one-off task, to-do, reminder, expense, or meeting
+- a test / diagnostic / system message
+- already present in the profile or known facts below
+When in doubt, leave it out. Max 6 facts. An empty list is a perfectly good answer.
+Write a one-line "summary" of what (if anything) you learned.
 
 WHO PARTH IS (profile):
 ${profile}
