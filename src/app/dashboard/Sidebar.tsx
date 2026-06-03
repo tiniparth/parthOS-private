@@ -2,13 +2,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Search, CheckSquare, CalendarDays, Mail, Wallet, Activity, StickyNote, Brain, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Search, CheckSquare, Briefcase, CalendarDays, Mail, Wallet, Activity, StickyNote, Brain, LogOut, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/dashboard", label: "Today", icon: LayoutDashboard },
   { href: "/dashboard/search", label: "Search", icon: Search },
   { href: "/dashboard/tasks", label: "Tasks", icon: CheckSquare },
+  { href: "/dashboard/clients", label: "Clients", icon: Briefcase },
   { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/dashboard/mail", label: "Mail", icon: Mail },
   { href: "/dashboard/expenses", label: "Expenses", icon: Wallet },

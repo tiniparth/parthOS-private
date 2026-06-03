@@ -77,6 +77,22 @@ create table if not exists habit_logs (
   created_at  timestamptz not null default now()
 );
 
+-- Clients / pipeline (the GTM command center).
+create table if not exists clients (
+  id           uuid primary key default gen_random_uuid(),
+  name         text not null,
+  domain       text,
+  stage        text default 'Discovery',
+  next_action  text,
+  blocker      text,
+  contact      text,
+  priority     text,
+  last_contact date,
+  notes        text,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+
 -- Security: enable RLS with NO policies. The anon/publishable key is then
 -- blocked from every table; our server uses the service_role key, which
 -- bypasses RLS. So nothing is publicly readable.
@@ -88,3 +104,4 @@ alter table notes        enable row level security;
 alter table settings     enable row level security;
 alter table expenses     enable row level security;
 alter table habit_logs   enable row level security;
+alter table clients      enable row level security;

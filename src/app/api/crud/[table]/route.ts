@@ -14,6 +14,7 @@ const EDITABLE: Record<string, string[]> = {
   notes: ["content", "tags"],
   memory_facts: ["category", "fact"],
   profile: ["content"],
+  clients: ["name", "domain", "stage", "next_action", "blocker", "contact", "priority", "last_contact", "notes"],
 };
 
 const ORDER_BY: Record<string, string> = {
@@ -23,6 +24,7 @@ const ORDER_BY: Record<string, string> = {
   notes: "created_at",
   memory_facts: "created_at",
   profile: "updated_at",
+  clients: "updated_at",
 };
 
 function pick(table: string, body: Record<string, unknown>) {
