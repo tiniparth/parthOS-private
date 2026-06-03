@@ -90,6 +90,16 @@ function buildSystemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>): string
       ? Object.entries(habitCounts).map(([h, n]) => `${h} ×${n}`).join(", ")
       : "(no habits logged in the last 7 days)";
 
+  // Live pipeline + goals (from the Clients/Goals tables — always current; the profile no longer holds these).
+  const clients =
+    ctx.clients.length > 0
+      ? ctx.clients.map((c) => `- ${c.name}${c.stage ? ` [${c.stage}]` : ""}${c.priority === "high" ? " ★" : ""}${c.next_action ? ` — next: ${c.next_action}` : ""}${c.blocker ? ` (blocker: ${c.blocker})` : ""}${c.contact ? ` · ${c.contact}` : ""}${c.last_contact ? ` · last ${c.last_contact}` : ""}`).join("\n")
+      : "(no clients in the pipeline)";
+  const goals =
+    ctx.goals.length > 0
+      ? ctx.goals.map((g) => `- ${g.title}${g.progress != null ? ` (${g.progress}%)` : ""}${g.target_date ? ` · by ${g.target_date}` : ""}`).join("\n")
+      : "(no active goals)";
+
   return `You are Parth OS — Parth's personal assistant. You are warm, concise, and proactive. You speak to Parth directly and briefly, like a sharp chief-of-staff who already knows him.
 
 Today is ${todayString(tz)} (timezone ${tz}).
@@ -109,12 +119,18 @@ ${spending}
 HABITS (last 7 days):
 ${habits}
 
+CLIENT PIPELINE (LIVE — this is the current source of truth; trust it over any client info in the profile):
+${clients}
+
+ACTIVE GOALS:
+${goals}
+
 YOUR JOB on each message:
 1. Understand what Parth wants (the message may be a voice note — transcribe it into "transcript").
 2. Decide on ACTIONS:
    - "create_task" for anything he needs to do / remember to do. The "title" must be ONE short line — the exact actionable thing, max ~100 characters. Do NOT add commentary, embellishment, or repeated phrases. Resolve relative dates ("Friday", "tomorrow", "this weekend") to an absolute YYYY-MM-DD; put any extra detail in nothing — keep it terse. Set priority only if implied.
    - "create_note" for ideas, information, or things to keep that aren't tasks. Keep "content" concise.
-   - "remember_fact" for durable facts about Parth, his work, people (e.g. Siddharth), or preferences worth remembering long-term. One sentence. Do NOT store one-off tasks as facts.
+   - "remember_fact" for a durable fact about Parth, people, or preferences worth remembering long-term — but ONLY if it's genuinely NEW and not already in the profile, pipeline, goals, or known facts above. Do NOT re-save things already known (his email, role, B.Tech, the Workwise description, etc.). One sentence. Do NOT store one-off tasks as facts.
    - "log_expense" when Parth reports money spent. Extract a numeric "amount" (assume INR unless stated), a short "item" (e.g. "lunch"), and a "category" (food/travel/work/personal/etc). Resolve the date to "spent_on" (YYYY-MM-DD, default today). One message can contain multiple expenses → emit one log_expense each.
    - "log_habit" when Parth reports doing a habit. "habit" must be one of: running, reading, yoga, journalling (map "ran"→running, "read"→reading, "did yoga"→yoga, "journaled"→journalling). "done_on" = YYYY-MM-DD (default today).
    - "create_event" when Parth wants something ON his calendar ("block/schedule/set up a meeting/call at <time>"). "summary" = short title, "when" = full ISO datetime WITH IST offset e.g. "2026-06-03T15:00:00+05:30" (resolve "3pm tomorrow" against today's date), "duration_min" = minutes (default 30). If he wants to INVITE people, put their email addresses in "attendees" (array) — use emails from the facts/profile when he names a known person (e.g. Siddharth → siddharth@letsworkwise.com); include any email he types. Use create_event for calendar blocking; use create_task for to-dos without a fixed time.

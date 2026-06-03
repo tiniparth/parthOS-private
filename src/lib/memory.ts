@@ -14,6 +14,8 @@ export interface Context {
   openTasks: { title: string; due_date: string | null; priority: string | null }[];
   expenses: { amount: number; item: string | null; category: string | null; spent_on: string }[];
   habitLogs: { habit: string; done_on: string }[];
+  clients: { name: string; stage: string | null; next_action: string | null; blocker: string | null; contact: string | null; priority: string | null; last_contact: string | null }[];
+  goals: { title: string; status: string | null; target_date: string | null; progress: number | null }[];
   today: string; // IST date YYYY-MM-DD
   model: string;
 }
@@ -30,13 +32,15 @@ export async function loadContext(): Promise<Context> {
   const monthStart = today.slice(0, 8) + "01";
   const weekAgo = daysAgoISO(today, 7);
 
-  const [profileRes, factsRes, tasksRes, modelRes, expRes, habitRes] = await Promise.all([
+  const [profileRes, factsRes, tasksRes, modelRes, expRes, habitRes, clientsRes, goalsRes] = await Promise.all([
     sb.from("profile").select("content").limit(1),
     sb.from("memory_facts").select("category,fact").order("created_at", { ascending: false }).limit(50),
     sb.from("tasks").select("title,due_date,priority").eq("status", "open").order("created_at", { ascending: false }).limit(30),
     sb.from("settings").select("value").eq("key", "model").limit(1),
     sb.from("expenses").select("amount,item,category,spent_on").gte("spent_on", monthStart).order("spent_on", { ascending: false }).limit(100),
     sb.from("habit_logs").select("habit,done_on").gte("done_on", weekAgo).order("done_on", { ascending: false }).limit(100),
+    sb.from("clients").select("name,stage,next_action,blocker,contact,priority,last_contact").order("updated_at", { ascending: false }).limit(30),
+    sb.from("goals").select("title,status,target_date,progress").eq("status", "active").order("created_at", { ascending: false }).limit(20),
   ]);
   return {
     profile: profileRes.data?.[0]?.content ?? "",
@@ -44,6 +48,8 @@ export async function loadContext(): Promise<Context> {
     openTasks: tasksRes.data ?? [],
     expenses: expRes.data ?? [],
     habitLogs: habitRes.data ?? [],
+    clients: clientsRes.data ?? [],
+    goals: goalsRes.data ?? [],
     today,
     // settings table may not exist yet → modelRes.error → fall back to env default.
     model: modelRes.data?.[0]?.value || env.brainModel(),
