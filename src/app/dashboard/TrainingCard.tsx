@@ -37,10 +37,13 @@ export default function TrainingCard({
     }
   }
 
-  const Box = ({ heading, col, accent }: { heading: string; col: Col; accent?: boolean }) => (
+  const Box = ({ heading, col, accent, action }: { heading: string; col: Col; accent?: boolean; action?: React.ReactNode }) => (
     <div className="rounded-lg border border-border p-3">
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-        {heading}{col ? ` · ${col.label}` : ""}
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {heading}{col ? ` · ${col.label}` : ""}
+        </div>
+        {action}
       </div>
       {col ? (
         <>
@@ -48,10 +51,25 @@ export default function TrainingCard({
           {col.hint && <div className="text-xs text-muted-foreground">{col.hint}</div>}
         </>
       ) : (
-        <div className="mt-0.5 text-sm text-muted-foreground">Rest / no session</div>
+        <div className="mt-0.5 text-sm text-muted-foreground">Rest</div>
       )}
     </div>
   );
+
+  const tick = canMark ? (
+    <button
+      onClick={toggle}
+      disabled={busy}
+      aria-label="Mark today's run done"
+      title={done ? "Done — tap to unmark" : "Mark today's run done"}
+      className={cn(
+        "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition disabled:opacity-60",
+        done ? "border-good bg-good text-[#04231a]" : "border-border text-muted-foreground hover:border-good hover:text-good"
+      )}
+    >
+      <Check className="h-3.5 w-3.5" strokeWidth={3} />
+    </button>
+  ) : undefined;
 
   return (
     <div className="rounded-xl border border-border bg-card p-4">
@@ -60,21 +78,9 @@ export default function TrainingCard({
         <span className="text-xs text-muted-foreground">{raceDate}</span>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <Box heading="🏃 Today" col={today} accent />
+        <Box heading="🏃 Today" col={today} accent action={tick} />
         <Box heading="👟 Tomorrow" col={tomorrow} />
       </div>
-      {canMark && (
-        <button
-          onClick={toggle}
-          disabled={busy}
-          className={cn(
-            "mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition disabled:opacity-60",
-            done ? "border-good bg-good text-[#04231a]" : "border-border text-muted-foreground hover:border-good hover:text-good"
-          )}
-        >
-          <Check className="h-3.5 w-3.5" strokeWidth={3} /> {done ? "Today's run done" : "Mark today's run done"}
-        </button>
-      )}
     </div>
   );
 }
