@@ -152,14 +152,23 @@ async function handleMessage(update: unknown, msg: any, chatId: number) {
     await logCapture(voice ? "voice" : "text", userText, update);
     const done = await executeActions(result.actions);
 
-    // Surface the Meet link (or flag a missing one) right in the reply, so an
-    // invite is never reported as "done" without you seeing its link.
+    // Feedback loop: echo WHERE each capture actually landed, so a misroute
+    // (e.g. a day-recording going to the wrong place) is visible immediately.
     let reply = result.reply;
-    for (const l of done.filter((d) => d.startsWith("event:"))) {
-      const link = l.match(/https:\/\/meet\.google\.com\/\S+/)?.[0];
-      if (link) reply += `\n\n🔗 Meet: ${link}`;
-      else if (l.includes("no Meet link")) reply += `\n\n⚠️ I couldn't attach a Meet link to that invite — add one manually.`;
-    }
+    const footer = done.map((d) => {
+      if (d.startsWith("journalled")) return "📓 journal";
+      if (d.startsWith("task:")) return `✅ task — ${d.slice(5).trim()}`;
+      if (d.startsWith("expense:")) return `💸 expense ₹${d.slice(8).trim()}`;
+      if (d.startsWith("habit:")) return `🔁 habit — ${d.slice(6).trim()}`;
+      if (d.startsWith("fact")) return "🧠 fact saved";
+      if (d.startsWith("milestone:")) return `🏆 milestone — ${d.slice(10).trim()}`;
+      if (d.startsWith("event:")) {
+        const link = d.match(/https:\/\/meet\.google\.com\/\S+/)?.[0];
+        return `📅 event${link ? ` · 🔗 ${link}` : d.includes("no Meet link") ? " · ⚠️ no Meet link" : ""}`;
+      }
+      return d;
+    });
+    if (footer.length) reply += `\n\n— saved: ${footer.join("  ·  ")}`;
 
     await sendMessage(chatId, reply);
   } catch (err) {
