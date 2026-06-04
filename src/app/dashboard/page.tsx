@@ -11,6 +11,7 @@ import TodayTasks from "./TodayTasks";
 import HabitTracker from "./HabitTracker";
 import ScheduleCard from "./ScheduleCard";
 import InboxCard from "./InboxCard";
+import TrainingToday from "./TrainingToday";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +69,9 @@ export default async function Today() {
           </Card>
         ))}
       </div>
+
+      {/* today's marathon session — high up, it's a daily priority */}
+      <TrainingToday />
 
       {/* bento: schedule (left) + tasks (right) */}
       <div className="grid gap-4 md:grid-cols-2">
