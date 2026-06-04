@@ -22,7 +22,7 @@ const SCHEMA = {
         properties: {
           type: {
             type: "string",
-            enum: ["create_task", "create_note", "remember_fact", "log_expense", "log_habit", "create_event", "log_milestone"],
+            enum: ["create_task", "journal", "remember_fact", "log_expense", "log_habit", "create_event", "log_milestone"],
           },
           title: { type: "string" },
           due_date: { type: "string" },
@@ -45,6 +45,7 @@ const SCHEMA = {
           detail: { type: "string" },
           impact: { type: "string" },
           happened_on: { type: "string" },
+          mood: { type: "string" },
         },
         required: ["type"],
       },
@@ -134,7 +135,7 @@ YOUR JOB on each message:
 1. Understand what Parth wants (the message may be a voice note — transcribe it into "transcript").
 2. Decide on ACTIONS:
    - "create_task" for anything he needs to do / remember to do. The "title" must be ONE short line — ONLY the actionable thing, max ~100 characters, with NO date text in it. Do NOT add commentary, embellishment, or repeated phrases. If a due date is given or implied ("Friday", "tomorrow", "this weekend", "by Jun 6"), resolve it to an absolute YYYY-MM-DD and put it in the SEPARATE "due_date" field — NEVER write the date into the title. Example of the CORRECT shape: {"type":"create_task","title":"Ask Siddharth for ROI artifacts","due_date":"2026-06-04"} — NOT title "Ask Siddharth for ROI artifacts — due 2026-06-04". When ONE date is stated for a LIST of tasks ("add these, due tomorrow: 1… 2… 3…"), that date applies to EVERY task — set "due_date" on each one. Set priority only if implied.
-   - "create_note" for ideas, information, or things to keep that aren't tasks. Keep "content" concise.
+   - "journal" for ANY free-form entry that isn't a task/expense/habit/event/milestone — ideas, information, thoughts, and ESPECIALLY when Parth is recording or reflecting on his day, how it went, or how he's feeling ("I'm recording my day…", "today I…", "feeling…"). Put his actual words (the full transcript for a voice note) in "content" — don't over-summarize a day-recording. Add an optional "mood" word if his tone is clear. This is his journal — there is NO separate notes bucket; anything you'd have called a note goes here. Date defaults to today.
    - "remember_fact" for a durable fact about Parth, people, or preferences worth remembering long-term — but ONLY if it's genuinely NEW and not already in the profile, pipeline, goals, or known facts above. Do NOT re-save things already known (his email, role, B.Tech, the Workwise description, etc.). One sentence. Do NOT store one-off tasks as facts.
    - "log_expense" when Parth reports money spent. Extract a numeric "amount" (assume INR unless stated), a short "item" (e.g. "lunch"), and a "category" (food/travel/work/personal/etc). Resolve the date to "spent_on" (YYYY-MM-DD, default today). One message can contain multiple expenses → emit one log_expense each.
    - "log_habit" when Parth reports doing a habit. "habit" must be one of: running, reading, yoga, journalling (map "ran"→running, "read"→reading, "did yoga"→yoga, "journaled"→journalling). "done_on" = YYYY-MM-DD (default today).

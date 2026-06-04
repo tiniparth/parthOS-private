@@ -66,7 +66,7 @@ export async function executeActions(actions: Action[]): Promise<string[]> {
   const sb = db();
   const done: string[] = [];
   const cap = (s: string, n: number) => (s.length > n ? s.slice(0, n) : s);
-  const KNOWN = ["create_task", "create_note", "remember_fact", "log_expense", "log_habit", "create_event", "log_milestone"];
+  const KNOWN = ["create_task", "journal", "create_note", "remember_fact", "log_expense", "log_habit", "create_event", "log_milestone"];
   // Some models (e.g. Llama via Groq) nest fields under the type name:
   // { create_event: {...} } instead of { type:"create_event", ... }. Flatten that.
   const normalize = (raw: any): any => {
@@ -95,11 +95,14 @@ export async function executeActions(actions: Action[]): Promise<string[]> {
         priority: a.priority || null,
       });
       done.push(`task: ${cap(title, 60)}`);
-    } else if (a.type === "create_note") {
-      const content = a.content || a.title || a.fact;
-      if (!content) continue;
-      await sb.from("notes").insert({ content: cap(content, 4000), tags: a.tags ?? null });
-      done.push("note saved");
+    } else if (a.type === "journal" || a.type === "create_note") {
+      // Single free-form home: everything free-form goes to the journal (notes retired).
+      const entry = a.content || a.title || a.fact;
+      if (!entry) continue;
+      const row: Record<string, unknown> = { entry: cap(entry, 8000) };
+      if (a.mood) row.mood = cap(String(a.mood), 40);
+      await sb.from("journal").insert(row); // entry_date defaults to today in the DB
+      done.push("journalled");
     } else if (a.type === "remember_fact") {
       const fact = a.fact || a.content || a.title;
       if (!fact) continue;
