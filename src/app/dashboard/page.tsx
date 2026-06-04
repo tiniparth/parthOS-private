@@ -43,6 +43,7 @@ export default async function Today() {
   for (const h of d.habitLogs) habitCount[h.habit.toLowerCase()] = (habitCount[h.habit.toLowerCase()] || 0) + 1;
   const topStreak = Math.max(0, ...Object.values(habitCount));
   const focusSuggestion = open.filter((t) => t.due_date && t.due_date <= d.today)[0]?.title ?? "";
+  const topClient = d.clients.find((c) => c.priority === "high") || d.clients[0];
 
   const stats = [
     { n: dueToday, l: "due today", warn: dueToday > 0 },
@@ -72,6 +73,28 @@ export default async function Today() {
 
       {/* today's marathon session — high up, it's a daily priority */}
       <TrainingToday />
+
+      {/* #1 priority — the top client (Empower). Force a yes/no; never let it go silent. */}
+      {topClient && (
+        <Card className="p-5">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">⭐ Top priority</span>
+            <Link href="/dashboard/clients" className="text-xs text-primary">Pipeline →</Link>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-lg font-semibold">{topClient.name}</span>
+            {topClient.stage && <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{topClient.stage}</span>}
+          </div>
+          {topClient.next_action && <p className="mt-1.5 text-sm"><span className="text-muted-foreground">Next: </span>{topClient.next_action}</p>}
+          {topClient.blocker && <p className="mt-1 text-sm text-warn">⚠ Blocker: {topClient.blocker}</p>}
+          {(topClient.contact || topClient.last_contact) && (
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              {topClient.contact && <span>👤 {topClient.contact}</span>}
+              {topClient.last_contact && <span>🕒 last contact {topClient.last_contact}</span>}
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* bento: schedule (left) + tasks (right) */}
       <div className="grid gap-4 md:grid-cols-2">
