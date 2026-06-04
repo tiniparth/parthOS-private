@@ -55,3 +55,32 @@ export function weekSessions(plan: Plan | null, dateISO: string): (PlanDay & { d
 export function ranOn(habitLogs: { habit: string; done_on: string }[], dateISO: string): boolean {
   return habitLogs.some((h) => /run/i.test(h.habit) && h.done_on === dateISO);
 }
+
+/** Turn a terse plan label ("20m tempo", "5×3m intervals") into actionable guidance. */
+export function describeSession(session: string): string {
+  if (!session) return "";
+  const s = session.toLowerCase();
+  const km = s.match(/(\d+)\s*km/);
+  const reps = s.match(/(\d+)\s*[×x]\s*(\d+)\s*m/);
+  const tmin = s.match(/(\d+)\s*m\s*tempo/);
+
+  if (/race day/.test(s)) return "🏁 Race day — easy start, settle into rhythm, negative-split if you can. Trust the training.";
+  if (/full rest/.test(s)) return "Full rest — no running. Sleep well, hydrate, light stretch/mobility.";
+  if (/\brest\b/.test(s)) return "Rest day — let the legs recover; optional easy walk or mobility.";
+  if (/long run/.test(s)) return `${km ? km[1] + " km " : ""}easy long run at conversational pace (able to talk in full sentences). Fuel + hydrate after.`;
+  if (/recovery jog/.test(s)) return "Very easy recovery jog, 20–30 min — deliberately slow.";
+  if (/recovery/.test(s)) return "Easy recovery, ~25–35 min at low effort.";
+  if (/hill/.test(s)) return "Hill work: 6–8 × 60–90s uphill hard, jog down to recover. 10-min warm-up + cool-down.";
+  if (/intervals/.test(s)) return reps
+    ? `${reps[1]} × ${reps[2]} min hard (~5K effort), ~90s easy jog between reps. 10-min warm-up + cool-down.`
+    : "Intervals: ~5 × 3 min hard with 90s jog recovery. Warm up & cool down 10 min.";
+  if (/progression tempo/.test(s)) return "Progression run: start easy, finish the last third at comfortably-hard tempo.";
+  if (/tempo/.test(s)) return `${tmin ? tmin[1] + "-min " : ""}tempo at comfortably-hard pace (~10–15s/km slower than 10K pace). 10-min easy warm-up + cool-down.`;
+  if (/easy.*strength/.test(s)) return "Easy 30–40 min run + 20 min strength (core, glutes, single-leg).";
+  if (/strides/.test(s)) return "Easy run finished with 4–6 × ~20s strides (relaxed, smooth accelerations).";
+  if (/pickups/.test(s)) return "Easy run with 3 × 2 min pickups (controlled surges).";
+  if (/shakeout/.test(s)) return "Short, very easy shakeout jog to stay loose.";
+  if (/easy/.test(s)) return `Easy run${km ? ` (${km[1]} km)` : ""} at relaxed, conversational effort.`;
+  if (/strength/.test(s)) return "Strength — core, legs, mobility.";
+  return session;
+}

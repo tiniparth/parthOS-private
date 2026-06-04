@@ -6,7 +6,7 @@ import type { GeminiPart } from "./gemini";
 import { loadContext } from "../memory";
 import { googleConnected } from "../google";
 import { listUpcoming } from "../calendar";
-import { getPlan, sessionFor, weekSessions, addDaysISO } from "../training";
+import { getPlan, sessionFor, weekSessions, addDaysISO, describeSession } from "../training";
 import { env } from "../env";
 import type { BrainInput, BrainResult } from "../types";
 
@@ -171,6 +171,7 @@ YOUR JOB on each message:
 3. Write the "reply" — match its depth to the message:
    - If Parth just CAPTURED something (task/expense/habit/event), confirm in ONE short line (e.g. "Got it — logged ₹250 coffee.").
    - If Parth ASKS A QUESTION — especially about himself, his work, schedule, or anything multi-part — you MUST write a THOROUGH reply: a one-line intro, THEN at least 4-6 specific bullets drawn from everything you know, grouped by theme. DO NOT stop after the intro line. NEVER give a one-line brush-off to a real question. Pull from EVERYTHING you know (profile, learned facts, tasks, calendar, PEOPLE, journal, milestones, clients, goals).
+   - If Parth asks about his RUN / training / "what's today" — give today's session WITH its how-to detail (from the MARATHON TRAINING block, e.g. pace/effort, warm-up/cool-down), THEN a line for tomorrow's session, and offer the rest of the week if useful. Don't just echo the short label.
    - If Parth asks WHO someone is, or ABOUT a person in his circle, answer using EVERYTHING you have on that person from the PEOPLE list — their relationship, role/company, email, and ESPECIALLY their notes — plus any time they appear in the journal/facts. Give a specific, warm 2–4 lines. NEVER reduce someone to a vague label like "one of your friends" when richer detail exists; e.g. for "who is Riya Jha?" use her full People entry (close friend ~8 years, since his drop year, most trusted, gifted him '40 Rules of Love'), not just "a friend".
    FORMAT any list or longer answer to be scannable: a one-line summary, then "• " bullets (or "1. " numbers for steps), each item on its own line (\n), with a blank line between sections/themes. For a section header just write a short plain label line (e.g. "Work") — do NOT use markdown bold or asterisks (** **); Telegram shows them as literal characters.
    Example — "what do you know about me?" → a short intro line, then grouped bullets (Work, Goals, Personal, etc.), several points each. Be thorough; never padded.
@@ -211,8 +212,8 @@ export async function think(input: BrainInput): Promise<BrainResult> {
       const wk = weekSessions(plan, ctx.today);
       trainingBlock =
         `\n\nMARATHON TRAINING (${plan.race}, race day ${plan.race_date}):\n` +
-        `Today (${ctx.today}): ${t ? `${t.week} ${t.day} — ${t.session}` : "(no session / rest)"}\n` +
-        `Tomorrow: ${tomorrow ? `${tomorrow.day} — ${tomorrow.session}` : "(no session / rest)"}\n` +
+        `Today (${ctx.today}): ${t ? `${t.week} ${t.day} — ${t.session} → ${describeSession(t.session)}` : "(no session / rest)"}\n` +
+        `Tomorrow: ${tomorrow ? `${tomorrow.day} — ${tomorrow.session} → ${describeSession(tomorrow.session)}` : "(no session / rest)"}\n` +
         (wk.length ? `This week:\n${wk.map((d) => `- ${d.date} ${d.day}: ${d.session}`).join("\n")}` : "");
     }
   } catch (e) {
