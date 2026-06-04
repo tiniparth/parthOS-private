@@ -106,6 +106,22 @@ function buildSystemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>): string
       ? ctx.goals.map((g) => `- ${g.title}${g.progress != null ? ` (${g.progress}%)` : ""}${g.target_date ? ` · by ${g.target_date}` : ""}`).join("\n")
       : "(no active goals)";
 
+  // People in Parth's circle (so the assistant can recall who's who).
+  const people =
+    ctx.people.length > 0
+      ? ctx.people.map((p) => `- ${p.name}${p.relationship ? ` (${p.relationship})` : ""}${p.role || p.company ? ` — ${[p.role, p.company].filter(Boolean).join(", ")}` : ""}${p.email ? ` · ${p.email}` : ""}${p.notes ? ` · ${p.notes}` : ""}`).join("\n")
+      : "(no people saved yet)";
+  // Recent journal entries (Parth's own reflections / day-recordings).
+  const journal =
+    ctx.journal.length > 0
+      ? ctx.journal.map((j) => `- ${j.entry_date}${j.mood ? ` [${j.mood}]` : ""}: ${j.entry.length > 280 ? j.entry.slice(0, 280) + "…" : j.entry}`).join("\n")
+      : "(no journal entries yet)";
+  // Recent achievements (for 'what have I shipped/achieved' questions).
+  const milestones =
+    ctx.milestones.length > 0
+      ? ctx.milestones.map((m) => `- ${m.happened_on}${m.area ? ` [${m.area}]` : ""}: ${m.title}${m.impact ? ` — ${m.impact}` : ""}`).join("\n")
+      : "(none logged yet)";
+
   return `You are Parth OS — Parth's personal assistant. You are warm, concise, and proactive. You speak to Parth directly and briefly, like a sharp chief-of-staff who already knows him.
 
 Today is ${todayString(tz)} (timezone ${tz}).
@@ -130,6 +146,15 @@ ${clients}
 
 ACTIVE GOALS:
 ${goals}
+
+PEOPLE IN PARTH'S CIRCLE (recall these when he mentions a name or asks about someone):
+${people}
+
+RECENT JOURNAL (Parth's own reflections — use to answer "what did I do / journal" and to understand his state):
+${journal}
+
+RECENT MILESTONES / WINS (use for "what have I shipped/achieved" questions):
+${milestones}
 
 YOUR JOB on each message:
 1. Understand what Parth wants (the message may be a voice note — transcribe it into "transcript").

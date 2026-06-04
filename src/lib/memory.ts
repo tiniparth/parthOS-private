@@ -16,6 +16,9 @@ export interface Context {
   habitLogs: { habit: string; done_on: string }[];
   clients: { name: string; stage: string | null; next_action: string | null; blocker: string | null; contact: string | null; priority: string | null; last_contact: string | null }[];
   goals: { title: string; status: string | null; target_date: string | null; progress: number | null }[];
+  people: { name: string; relationship: string | null; email: string | null; role: string | null; company: string | null; notes: string | null }[];
+  journal: { entry: string; entry_date: string; mood: string | null }[];
+  milestones: { title: string; kind: string | null; area: string | null; impact: string | null; happened_on: string }[];
   today: string; // IST date YYYY-MM-DD
   model: string;
 }
@@ -32,7 +35,7 @@ export async function loadContext(): Promise<Context> {
   const monthStart = today.slice(0, 8) + "01";
   const weekAgo = daysAgoISO(today, 7);
 
-  const [profileRes, factsRes, tasksRes, modelRes, expRes, habitRes, clientsRes, goalsRes] = await Promise.all([
+  const [profileRes, factsRes, tasksRes, modelRes, expRes, habitRes, clientsRes, goalsRes, peopleRes, journalRes, milestonesRes] = await Promise.all([
     sb.from("profile").select("content").limit(1),
     sb.from("memory_facts").select("category,fact").order("created_at", { ascending: false }).limit(50),
     sb.from("tasks").select("title,due_date,priority").eq("status", "open").order("created_at", { ascending: false }).limit(30),
@@ -41,6 +44,9 @@ export async function loadContext(): Promise<Context> {
     sb.from("habit_logs").select("habit,done_on").gte("done_on", weekAgo).order("done_on", { ascending: false }).limit(100),
     sb.from("clients").select("name,stage,next_action,blocker,contact,priority,last_contact").order("updated_at", { ascending: false }).limit(30),
     sb.from("goals").select("title,status,target_date,progress").eq("status", "active").order("created_at", { ascending: false }).limit(20),
+    sb.from("people").select("name,relationship,email,role,company,notes").order("updated_at", { ascending: false }).limit(40),
+    sb.from("journal").select("entry,entry_date,mood").order("entry_date", { ascending: false }).order("created_at", { ascending: false }).limit(12),
+    sb.from("milestones").select("title,kind,area,impact,happened_on").order("happened_on", { ascending: false }).limit(20),
   ]);
   return {
     profile: profileRes.data?.[0]?.content ?? "",
@@ -50,6 +56,9 @@ export async function loadContext(): Promise<Context> {
     habitLogs: habitRes.data ?? [],
     clients: clientsRes.data ?? [],
     goals: goalsRes.data ?? [],
+    people: peopleRes.data ?? [],
+    journal: journalRes.data ?? [],
+    milestones: milestonesRes.data ?? [],
     today,
     // settings table may not exist yet → modelRes.error → fall back to env default.
     model: modelRes.data?.[0]?.value || env.brainModel(),
