@@ -6,6 +6,7 @@ import type { GeminiPart } from "./gemini";
 import { loadContext } from "../memory";
 import { googleConnected } from "../google";
 import { listUpcoming } from "../calendar";
+import { getPlan, sessionFor, weekSessions, addDaysISO } from "../training";
 import { env } from "../env";
 import type { BrainInput, BrainResult } from "../types";
 
@@ -200,9 +201,28 @@ export async function think(input: BrainInput): Promise<BrainResult> {
     console.error("brain calendar fetch failed:", e);
   }
 
+  // Marathon training plan — so he can ask "what's my run today / this week?".
+  let trainingBlock = "";
+  try {
+    const plan = await getPlan();
+    if (plan) {
+      const t = sessionFor(plan, ctx.today);
+      const tomorrow = sessionFor(plan, addDaysISO(ctx.today, 1));
+      const wk = weekSessions(plan, ctx.today);
+      trainingBlock =
+        `\n\nMARATHON TRAINING (${plan.race}, race day ${plan.race_date}):\n` +
+        `Today (${ctx.today}): ${t ? `${t.week} ${t.day} — ${t.session}` : "(no session / rest)"}\n` +
+        `Tomorrow: ${tomorrow ? `${tomorrow.day} — ${tomorrow.session}` : "(no session / rest)"}\n` +
+        (wk.length ? `This week:\n${wk.map((d) => `- ${d.date} ${d.day}: ${d.session}`).join("\n")}` : "");
+    }
+  } catch (e) {
+    console.error("brain training fetch failed:", e);
+  }
+
   const system =
     buildSystemPrompt(ctx) +
-    (scheduleBlock ? `\n\nPARTH'S CALENDAR (next 7 days):\n${scheduleBlock}` : "");
+    (scheduleBlock ? `\n\nPARTH'S CALENDAR (next 7 days):\n${scheduleBlock}` : "") +
+    trainingBlock;
 
   const parts: GeminiPart[] = [];
   if (input.audio) {

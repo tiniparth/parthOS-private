@@ -5,6 +5,7 @@ import { generateJSON } from "./brain/groq";
 import { isGmailConnected, triageInbox } from "./gmail";
 import { googleConnected } from "./google";
 import { listUpcoming } from "./calendar";
+import { getPlan, sessionFor, isTrainingDay, ranOn, addDaysISO } from "./training";
 
 const TRACKED_HABITS = ["running", "reading", "yoga", "journalling"];
 
@@ -48,6 +49,13 @@ export async function buildBriefing(): Promise<string> {
   const spendTotal = ctx.expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
 
   // Top client priority + the headline goal — so the brief feels strategic, not just a list.
+  // Marathon plan: today's session + whether yesterday's run was logged.
+  const plan = await getPlan();
+  const todaySession = sessionFor(plan, ctx.today);
+  const yISO = addDaysISO(ctx.today, -1);
+  const ySession = sessionFor(plan, yISO);
+  const missedYesterday = ySession && isTrainingDay(ySession.session) && !ranOn(ctx.habitLogs, yISO) ? ySession.session : null;
+
   const topClient = ctx.clients.find((c) => c.priority === "high") || ctx.clients[0];
   const clientLine = topClient
     ? `${topClient.name}${topClient.stage ? ` [${topClient.stage}]` : ""}${topClient.next_action ? ` — next: ${topClient.next_action}` : ""}${topClient.blocker ? ` (blocker: ${topClient.blocker})` : ""}${topClient.last_contact ? ` · last contact ${topClient.last_contact}` : ""}`
@@ -55,6 +63,8 @@ export async function buildBriefing(): Promise<string> {
   const goalLine = ctx.goals[0] ? `${ctx.goals[0].title}${ctx.goals[0].progress != null ? ` (${ctx.goals[0].progress}%)` : ""}` : "none";
 
   const data = `Date: ${ctx.today}
+Today's training (Ladakh HM plan): ${todaySession ? `${todaySession.week} ${todaySession.day} — ${todaySession.session}` : "(no session / rest)"}
+Yesterday's session not logged (nudge if present): ${missedYesterday ? `${missedYesterday} on ${yISO}` : "n/a"}
 Today's calendar: ${scheduleLine}
 Tasks due/overdue: ${dueToday.map((t) => `${t.title}${t.due_date ? ` (${t.due_date})` : ""}`).join("; ") || "none"}
 Other open tasks: ${otherTasks.slice(0, 6).map((t) => t.title).join("; ") || "none"}
@@ -73,8 +83,8 @@ Structure (5–8 short scannable lines, light emoji, no markdown headers, no ram
 1. One-line warm good-morning.
 2. 🗓️ Today's schedule (from the calendar line; if nothing, say the day's open).
 3. 🎯 The 1–3 things that matter MOST today — due/overdue tasks + the top client's next action (his #1 work priority is closing Empower / Dr Jamal — surface it whenever relevant).
-4. 🏃 If a tracked habit is slipping, ONE specific, motivating nudge (e.g. "no run in a few days — go").
-5. Optional one-liner: headline goal progress or spend, only if notable.
+4. 🏃 Today's marathon training session from the plan (e.g. "Today: 20m tempo (W2)") — always include it if there's a session; if it's a rest day, say "rest day — recover". If yesterday's session wasn't logged, add a gentle one-line nudge to get it in.
+5. Optional one-liner: a slipping non-running habit, headline goal progress, or spend — only if notable.
 Be direct and energizing — this should make his day easier, not just list data.`;
     const out = await generateJSON(sys, [{ text: data }], schema, ctx.model);
     if (out?.briefing) return String(out.briefing);
@@ -87,6 +97,8 @@ Be direct and energizing — this should make his day easier, not just list data
   if (scheduleLine !== "(not connected)") lines.push(`🗓️ Today: ${scheduleLine}`);
   if (dueToday.length) lines.push(`📌 Due today: ${dueToday.map((t) => t.title).join(", ")}`);
   if (topClient) lines.push(`🎯 ${clientLine}`);
+  if (todaySession) lines.push(`🏃 Today's run: ${todaySession.session} (${todaySession.week})`);
+  if (missedYesterday) lines.push(`⚠️ Yesterday's ${missedYesterday} isn't logged — did you do it?`);
   lines.push(`✅ Open tasks: ${ctx.openTasks.length}`);
   if (missingHabits.length) lines.push(`🏃 Habit nudge: ${missingHabits.join(", ")}`);
   lines.push(`💸 Spent this month: ₹${spendTotal}`);
