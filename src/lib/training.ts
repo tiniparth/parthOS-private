@@ -51,6 +51,26 @@ export function weekSessions(plan: Plan | null, dateISO: string): (PlanDay & { d
     .sort((a, b) => (a.date < b.date ? -1 : 1));
 }
 
+/** Short 2–4 word hint for the compact card (vs the full describeSession). */
+export function describeSessionShort(session: string): string {
+  if (!session) return "";
+  const s = session.toLowerCase();
+  if (/race day/.test(s)) return "🏁 race day!";
+  if (/full rest|rest/.test(s)) return "recover";
+  if (/long run/.test(s)) return "easy, conversational";
+  if (/recovery/.test(s)) return "very easy";
+  if (/hill/.test(s)) return "uphill repeats";
+  if (/intervals|pickups/.test(s)) return "hard reps + jog recovery";
+  if (/progression/.test(s)) return "easy → strong finish";
+  if (/tempo/.test(s)) return "comfortably-hard pace";
+  if (/easy.*strength/.test(s)) return "easy run + strength";
+  if (/strides/.test(s)) return "easy + strides";
+  if (/shakeout/.test(s)) return "short & easy";
+  if (/easy/.test(s)) return "relaxed effort";
+  if (/strength/.test(s)) return "core + legs";
+  return "";
+}
+
 /** Did Parth log a run on this date? (habit logs use 'running'.) */
 export function ranOn(habitLogs: { habit: string; done_on: string }[], dateISO: string): boolean {
   return habitLogs.some((h) => /run/i.test(h.habit) && h.done_on === dateISO);

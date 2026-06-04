@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { CheckCircle2, Wallet } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import { loadDashboard } from "@/lib/dashboard";
 import { getSetting } from "@/lib/settings";
 import FocusCard from "./FocusCard";
@@ -36,21 +35,10 @@ export default async function Today() {
   const [d, focusSetting] = await Promise.all([loadDashboard(), getSetting("focus")]);
 
   const open = d.tasks.filter((t) => t.status !== "done");
-  const dueToday = open.filter((t) => t.due_date && t.due_date <= d.today).length;
   const monthSpend = d.expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
   const todaySpend = d.expenses.filter((e) => e.spent_on === d.today).reduce((s, e) => s + Number(e.amount || 0), 0);
-  const habitCount: Record<string, number> = {};
-  for (const h of d.habitLogs) habitCount[h.habit.toLowerCase()] = (habitCount[h.habit.toLowerCase()] || 0) + 1;
-  const topStreak = Math.max(0, ...Object.values(habitCount));
   const focusSuggestion = open.filter((t) => t.due_date && t.due_date <= d.today)[0]?.title ?? "";
   const topClient = d.clients.find((c) => c.priority === "high") || d.clients[0];
-
-  const stats = [
-    { n: dueToday, l: "due today", warn: dueToday > 0 },
-    { n: open.length, l: "open tasks", warn: false },
-    { n: `₹${todaySpend}`, l: "today", warn: false },
-    { n: `🔥${topStreak}`, l: "streak", warn: false },
-  ];
 
   return (
     <div className="space-y-4">
@@ -62,16 +50,15 @@ export default async function Today() {
       <FocusCard suggestion={focusSuggestion} initialFocus={focusSetting || ""} />
       <QuickCapture />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {stats.map((s, i) => (
-          <Card key={i} className="p-3 text-center">
-            <div className={cn("text-xl font-bold leading-none", s.warn && "text-warn")}>{s.n}</div>
-            <div className="mt-1 text-xs text-muted-foreground">{s.l}</div>
-          </Card>
-        ))}
-      </div>
+      {/* tasks first — no scrolling for the thing checked most */}
+      <Card className="p-5">
+        <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <CheckCircle2 className="h-3.5 w-3.5" /> Due today / overdue
+        </div>
+        <TodayTasks today={d.today} initial={d.tasks} />
+      </Card>
 
-      {/* today's marathon session — high up, it's a daily priority */}
+      {/* today's marathon session */}
       <TrainingToday />
 
       {/* #1 priority — the top client (Empower). Force a yes/no; never let it go silent. */}
@@ -96,23 +83,15 @@ export default async function Today() {
         </Card>
       )}
 
-      {/* bento: schedule (left) + tasks (right) */}
+      {/* schedule + inbox */}
       <div className="grid gap-4 md:grid-cols-2">
         <Suspense fallback={<SkeletonCard label="Schedule · today" />}>
           <ScheduleCard />
         </Suspense>
-        <Card className="p-5">
-          <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <CheckCircle2 className="h-3.5 w-3.5" /> Due today / overdue
-          </div>
-          <TodayTasks today={d.today} initial={d.tasks} />
-        </Card>
+        <Suspense fallback={<SkeletonCard label="Needs attention" />}>
+          <InboxCard />
+        </Suspense>
       </div>
-
-      {/* emails */}
-      <Suspense fallback={<SkeletonCard label="Needs attention" />}>
-        <InboxCard />
-      </Suspense>
 
       {/* bottom bento: habits + expenses */}
       <div className="grid gap-4 md:grid-cols-2">

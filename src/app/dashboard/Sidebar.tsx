@@ -50,24 +50,17 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside className="hidden md:flex fixed inset-y-0 left-0 w-56 flex-col border-r border-border bg-card/40 px-3 py-5">
-        <Link href="/dashboard" className="px-3 mb-7 text-lg font-bold tracking-tight">Parth OS<span className="text-primary">.</span></Link>
-        <nav className="flex-1 space-y-1"><NavLinks /></nav>
-        <a href="/api/logout" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:text-foreground"><LogOut className="h-4 w-4" /> Logout</a>
-      </aside>
-
-      {/* Mobile top bar */}
-      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
+      {/* Slim top bar with a menu toggle — same on all screen sizes */}
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
         <Link href="/dashboard" className="text-lg font-bold tracking-tight">Parth OS<span className="text-primary">.</span></Link>
         <button onClick={() => setOpen(true)} aria-label="Menu" className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"><Menu className="h-6 w-6" /></button>
       </header>
 
-      {/* Mobile drawer */}
+      {/* Slide-in drawer — hidden by default, opens on tap */}
       {open && (
-        <div className="md:hidden fixed inset-0 z-40" onClick={() => setOpen(false)}>
+        <div className="fixed inset-0 z-40" onClick={() => setOpen(false)}>
           <div className="absolute inset-0 bg-black/60" />
-          <nav className="absolute right-0 top-0 h-full w-72 max-w-[80%] border-l border-border bg-card p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <nav className="absolute right-0 top-0 h-full w-72 max-w-[80%] overflow-y-auto border-l border-border bg-card p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
               <span className="text-lg font-bold tracking-tight">Parth OS<span className="text-primary">.</span></span>
               <button onClick={() => setOpen(false)} aria-label="Close" className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted"><X className="h-6 w-6" /></button>
