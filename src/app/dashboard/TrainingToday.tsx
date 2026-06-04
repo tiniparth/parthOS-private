@@ -22,15 +22,13 @@ export default async function TrainingToday() {
   const col = (d: PlanDay | null) => (d ? { label: d.day, session: d.session, hint: describeSessionShort(d.session) } : null);
 
   return (
-    <div className="mb-4">
-      <TrainingCard
-        race={plan.race}
-        raceDate={`race · ${plan.race_date}`}
-        today={col(t)}
-        tomorrow={col(tom)}
-        canMark={!!t && isTrainingDay(t.session)}
-        doneToday={doneToday}
-      />
-    </div>
+    <TrainingCard
+      race={plan.race}
+      raceDate={`race · ${plan.race_date}`}
+      today={col(t)}
+      tomorrow={col(tom)}
+      canMark={!!t && isTrainingDay(t.session)}
+      doneToday={doneToday}
+    />
   );
 }

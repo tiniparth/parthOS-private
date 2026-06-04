@@ -10,7 +10,9 @@ export default function HabitsPage() {
       <h1 className="text-2xl font-semibold tracking-tight mb-1">Habits</h1>
       <p className="text-sm text-muted-foreground mb-5">Tap the circle to log today. Dots show your last 7 days.</p>
 
-      <TrainingToday />
+      <div className="mb-5">
+        <TrainingToday />
+      </div>
 
       <HabitTracker />
 
