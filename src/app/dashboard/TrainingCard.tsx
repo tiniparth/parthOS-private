@@ -45,14 +45,9 @@ export default function TrainingCard({
         </div>
         {action}
       </div>
-      {col ? (
-        <>
-          <div className={cn("mt-0.5 leading-tight", accent ? "font-semibold" : "font-medium")}>{col.session}</div>
-          {col.hint && <div className="text-xs text-muted-foreground">{col.hint}</div>}
-        </>
-      ) : (
-        <div className="mt-0.5 text-sm text-muted-foreground">Rest</div>
-      )}
+      <div className={cn("mt-0.5 leading-tight", accent ? "font-semibold" : "font-medium text-muted-foreground")}>
+        {col ? col.session : "Rest"}
+      </div>
     </div>
   );
 
