@@ -18,6 +18,7 @@ const EDITABLE: Record<string, string[]> = {
   people: ["name", "email", "role", "company", "relationship", "last_contact", "notes"],
   goals: ["title", "why", "status", "target_date", "progress"],
   journal: ["entry", "entry_date", "mood"],
+  portfolio_queue: ["kind", "title", "hook", "detail", "date_label", "link", "status", "published_at"],
 };
 
 const ORDER_BY: Record<string, string> = {
@@ -31,6 +32,7 @@ const ORDER_BY: Record<string, string> = {
   people: "updated_at",
   goals: "created_at",
   journal: "entry_date",
+  portfolio_queue: "created_at",
 };
 
 function pick(table: string, body: Record<string, unknown>) {

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
 import { env } from "@/lib/env";
-import { sendMessage, sendTyping, downloadFileAsBase64 } from "@/lib/telegram";
+import { sendMessage, sendMessageWithButtons, answerCallbackQuery, editMessageText, sendTyping, downloadFileAsBase64 } from "@/lib/telegram";
+import { db } from "@/lib/supabase";
 import { think } from "@/lib/brain";
 import { GeminiRateLimitError } from "@/lib/brain/gemini";
 import { logCapture, executeActions } from "@/lib/memory";
@@ -12,6 +13,44 @@ import { searchFiles } from "@/lib/drive";
 import { transcribe } from "@/lib/voice";
 import { generateDoc } from "@/lib/docgen";
 import { createDoc } from "@/lib/docs";
+
+/** One queued portfolio item → a Telegram message with Publish/Skip buttons. */
+async function sendPortfolioCard(chatId: number, item: { id: number; kind: string; title: string; hook?: string | null; date_label?: string | null }) {
+  const lines = [`📤 Site suggestion — ${item.kind}`, "", item.title];
+  if (item.date_label) lines.push(item.date_label);
+  if (item.hook) lines.push(`“${item.hook}”`);
+  lines.push("", "Publish to parth-index.vercel.app?");
+  await sendMessageWithButtons(chatId, lines.join("\n"), [[
+    { text: "✅ Publish", callback_data: `pf:pub:${item.id}` },
+    { text: "❌ Skip", callback_data: `pf:rej:${item.id}` },
+  ]]);
+}
+
+/** Inline-button presses (currently: portfolio publish/skip). */
+async function handleCallback(cq: any) {
+  const data: string = cq?.data ?? "";
+  const chatId = cq?.message?.chat?.id;
+  const messageId = cq?.message?.message_id;
+  const m = data.match(/^pf:(pub|rej):(\d+)$/);
+  if (!m || !chatId) { await answerCallbackQuery(cq.id); return; }
+  const [, verb, id] = m;
+  const { data: rows } = await db().from("portfolio_queue").select("id,title,status").eq("id", Number(id)).limit(1);
+  const item = rows?.[0];
+  if (!item) {
+    await answerCallbackQuery(cq.id, "That item no longer exists.");
+    if (messageId) await editMessageText(chatId, messageId, "🗑️ This suggestion was removed.");
+    return;
+  }
+  if (verb === "pub") {
+    await db().from("portfolio_queue").update({ status: "live", published_at: new Date().toISOString() }).eq("id", item.id);
+    await answerCallbackQuery(cq.id, "Live on the site 🎉");
+    if (messageId) await editMessageText(chatId, messageId, `✅ LIVE on parth-index.vercel.app\n\n${item.title}`);
+  } else {
+    await db().from("portfolio_queue").update({ status: "rejected" }).eq("id", item.id);
+    await answerCallbackQuery(cq.id, "Skipped.");
+    if (messageId) await editMessageText(chatId, messageId, `❌ Skipped (kept privately)\n\n${item.title}`);
+  }
+}
 
 /** Handle brain-switch commands. Returns true if the message was a command. */
 async function handleCommand(text: string, chatId: number): Promise<boolean> {
@@ -57,6 +96,25 @@ async function handleCommand(text: string, chatId: number): Promise<boolean> {
     await sendMessage(chatId, `📁 Found ${files.length} for "${q}":\n\n${lines.join("\n\n")}`);
     return true;
   }
+  if (cmd === "/portfolio" || cmd === "/site") {
+    const { data: pending } = await db()
+      .from("portfolio_queue")
+      .select("id,kind,title,hook,date_label")
+      .in("status", ["suggested", "approved"])
+      .order("created_at", { ascending: false })
+      .limit(8);
+    const { count: liveCount } = await db()
+      .from("portfolio_queue")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "live");
+    if (!pending?.length) {
+      await sendMessage(chatId, `🗂 Portfolio queue is clear — nothing awaiting your yes.\n${liveCount || 0} item(s) currently live on parth-index.vercel.app.\n\nMention a win (race, build, memo) and I'll draft it for the site.`);
+      return true;
+    }
+    await sendMessage(chatId, `🗂 ${pending.length} suggestion(s) awaiting your yes (${liveCount || 0} live):`);
+    for (const item of pending) await sendPortfolioCard(chatId, item);
+    return true;
+  }
   if (cmd.startsWith("/doc")) {
     const topic = text.trim().replace(/^\/doc\s*/i, "").trim();
     if (!topic) { await sendMessage(chatId, "Usage: /doc <topic> — e.g. /doc company profile of Sterling & Wilson"); return true; }
@@ -92,6 +150,18 @@ export async function POST(req: NextRequest) {
   }
 
   const update = await req.json().catch(() => null);
+
+  // Inline-button presses arrive as callback_query, not message.
+  const cq = update?.callback_query;
+  if (cq) {
+    const cqChat = cq?.message?.chat?.id;
+    const allowedCq = env.allowedChatId();
+    if (allowedCq && String(cqChat) === String(allowedCq)) {
+      after(() => handleCallback(cq).catch((e) => console.error("handleCallback error:", e)));
+    }
+    return NextResponse.json({ ok: true });
+  }
+
   const msg = update?.message;
   const chatId: number | undefined = msg?.chat?.id;
   if (!chatId) return NextResponse.json({ ok: true });
@@ -156,6 +226,7 @@ async function handleMessage(update: unknown, msg: any, chatId: number) {
     // (e.g. a day-recording going to the wrong place) is visible immediately.
     let reply = result.reply;
     const footer = done.map((d) => {
+      if (d.startsWith("portfolio:")) return "📤 site suggestion queued";
       if (d.startsWith("journalled")) return "📓 journal";
       if (d.startsWith("task:")) return `✅ task — ${d.slice(5).trim()}`;
       if (d.startsWith("expense:")) return `💸 expense ₹${d.slice(8).trim()}`;
@@ -171,6 +242,14 @@ async function handleMessage(update: unknown, msg: any, chatId: number) {
     if (footer.length) reply += `\n\n— saved: ${footer.join("  ·  ")}`;
 
     await sendMessage(chatId, reply);
+
+    // Any portfolio suggestions get their own card with Publish/Skip buttons.
+    for (const d of done) {
+      const pm = d.match(/^portfolio:(\d+):(.*)$/);
+      if (!pm) continue;
+      const { data: rows } = await db().from("portfolio_queue").select("id,kind,title,hook,date_label").eq("id", Number(pm[1])).limit(1);
+      if (rows?.[0]) await sendPortfolioCard(chatId, rows[0]);
+    }
   } catch (err) {
     console.error("handleMessage error:", err);
     if (err instanceof GeminiRateLimitError) {

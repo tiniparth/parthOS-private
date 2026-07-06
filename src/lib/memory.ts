@@ -75,7 +75,7 @@ export async function executeActions(actions: Action[]): Promise<string[]> {
   const sb = db();
   const done: string[] = [];
   const cap = (s: string, n: number) => (s.length > n ? s.slice(0, n) : s);
-  const KNOWN = ["create_task", "journal", "create_note", "remember_fact", "log_expense", "log_habit", "create_event", "log_milestone"];
+  const KNOWN = ["create_task", "journal", "create_note", "remember_fact", "log_expense", "log_habit", "create_event", "log_milestone", "suggest_portfolio"];
   // Some models (e.g. Llama via Groq) nest fields under the type name:
   // { create_event: {...} } instead of { type:"create_event", ... }. Flatten that.
   const normalize = (raw: any): any => {
@@ -161,6 +161,22 @@ export async function executeActions(actions: Action[]): Promise<string[]> {
       if (a.happened_on) row.happened_on = a.happened_on; // else DB defaults to today
       await sb.from("milestones").insert(row);
       done.push(`milestone: ${cap(String(title), 60)}`);
+    } else if (a.type === "suggest_portfolio") {
+      const title = a.title || a.content || a.fact;
+      if (!title) continue;
+      const KINDS = ["race", "build", "memo", "now", "milestone"];
+      const row: Record<string, unknown> = {
+        kind: KINDS.includes(a.site_kind) ? a.site_kind : "milestone",
+        title: cap(String(title), 200),
+        hook: a.hook ? cap(String(a.hook), 300) : null,
+        detail: a.detail ? cap(String(a.detail), 1000) : null,
+        date_label: a.date_label ? cap(String(a.date_label), 80) : null,
+        source: "bot",
+        status: "suggested",
+      };
+      const { data } = await sb.from("portfolio_queue").insert(row).select("id").limit(1);
+      // id travels in the summary so the Telegram layer can attach Publish/Skip buttons.
+      done.push(`portfolio:${data?.[0]?.id ?? ""}:${cap(String(title), 60)}`);
     }
   }
   return done;

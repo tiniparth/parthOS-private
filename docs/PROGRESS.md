@@ -4,6 +4,14 @@ _Chronological record of what was actually built/changed. Newest first. See [PRD
 
 ---
 
+## 2026-07-06 — Living portfolio Phase 2: the bot publishes to the public site
+- **Context:** Parth's public portfolio (parth-index.vercel.app, own repo `tiniparth/parth-index`) hydrates from a `portfolio_queue` table in THIS Supabase (Phase 1, 2026-07-05): the site's anon key reads ONLY `status='live'` rows (RLS). Phase 2 wires the bot + dashboard into that loop.
+- **Brain:** new `suggest_portfolio` action — when a milestone is also portfolio-worthy (race/build/memo/public win), the brain drafts a queue row in site voice (`site_kind`, `title`, `hook`, `date_label`). Hard rule in prompt: never client names / deal values. Suggestions are `status='suggested'` — human yes required, always.
+- **Telegram:** first inline-keyboard support (`sendMessageWithButtons`, `answerCallbackQuery`, `editMessageText` in lib/telegram.ts + a `callback_query` branch in the webhook, allowlist-gated). Every suggestion arrives as a card with ✅ Publish / ❌ Skip buttons; the card rewrites itself with the outcome. New `/portfolio` (alias `/site`) command lists the pending queue + live count.
+- **Dashboard:** new **Portfolio** tab (queue with Publish/Skip, live list with Unpublish/Delete, skipped drawer with Publish-anyway, manual quick-queue form). `portfolio_queue` added to the CRUD allowlist.
+- **Deploy:** parth-os Vercel project re-connected from the stale public repo to `tiniparth/parthOS-private` — push-to-deploy now correct. `schema.sql` documents the (already-applied) portfolio_queue DDL.
+- Other assistant-side loops: `/eod` runs the brain vault + asks "portfolio-worthy today?"; os.mjs has portfolio-suggest/queue/publish/reject/unpublish.
+
 ## 2026-06-03 (pm) — Reliability fixes · retrospective spine · call-notes tool spun out
 - **Fix — task due-dates:** the brain was baking resolved dates into task titles ("… — due 2026-06-04") with `due_date` left null. Tightened the create_task prompt (explicit `due_date` field, right/wrong example, "one date for a list applies to every task") + a deterministic backstop in `executeActions` that salvages a trailing "— due YYYY-MM-DD" into the field. Cleaned the 5 affected rows.
 - **Calendar default — auto Meet link:** any event WITH attendees now auto-attaches a Google Meet link (`conferenceData` + `conferenceDataVersion=1`). Solo time-blocks unchanged. Both creation paths (Telegram brain + dashboard) funnel through one `createEvent`. Saved as a standing preference.

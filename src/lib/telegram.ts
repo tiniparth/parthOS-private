@@ -26,6 +26,49 @@ export async function sendMessage(
   return res.ok;
 }
 
+/** One row of inline buttons under a message. */
+export type InlineButton = { text: string; callback_data: string };
+
+/** Send a message with inline buttons (e.g. Publish / Skip). */
+export async function sendMessageWithButtons(
+  chatId: number | string,
+  text: string,
+  buttons: InlineButton[][]
+) {
+  const res = await fetch(api("sendMessage"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      disable_web_page_preview: true,
+      reply_markup: { inline_keyboard: buttons },
+    }),
+  });
+  if (!res.ok) {
+    console.error("telegram sendMessageWithButtons failed:", res.status, await res.text());
+  }
+  return res.ok;
+}
+
+/** Ack a button press (stops the client-side spinner; optional toast text). */
+export async function answerCallbackQuery(callbackQueryId: string, text?: string) {
+  await fetch(api("answerCallbackQuery"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ callback_query_id: callbackQueryId, ...(text ? { text } : {}) }),
+  }).catch(() => {});
+}
+
+/** Rewrite a sent message (used to replace buttons with the outcome). */
+export async function editMessageText(chatId: number | string, messageId: number, text: string) {
+  await fetch(api("editMessageText"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, message_id: messageId, text, disable_web_page_preview: true }),
+  }).catch(() => {});
+}
+
 /** Send the "typing…" indicator so replies feel responsive. */
 export async function sendTyping(chatId: number | string) {
   await fetch(api("sendChatAction"), {

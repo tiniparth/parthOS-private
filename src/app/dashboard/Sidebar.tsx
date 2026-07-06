@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Search, CheckSquare, Briefcase, Users, CalendarDays, Mail, Target, BookOpen, Wallet, Activity, Brain, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Search, CheckSquare, Briefcase, Users, CalendarDays, Mail, Target, BookOpen, Wallet, Activity, Brain, Globe, LogOut, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -18,6 +18,7 @@ const items = [
   { href: "/dashboard/expenses", label: "Expenses", icon: Wallet },
   { href: "/dashboard/habits", label: "Habits", icon: Activity },
   { href: "/dashboard/memory", label: "Memory", icon: Brain },
+  { href: "/dashboard/portfolio", label: "Portfolio", icon: Globe },
 ];
 
 export default function Sidebar() {

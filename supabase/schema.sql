@@ -157,3 +157,28 @@ alter table goals        enable row level security;
 alter table journal      enable row level security;
 alter table milestones   enable row level security;
 alter table digests      enable row level security;
+
+-- ------------------------------------------------------------------
+-- portfolio_queue — the living-portfolio publish queue (added 2026-07-05,
+-- already applied in production via docs in the portfolio workspace).
+-- The public site parth-index.vercel.app reads ONLY status='live' rows
+-- via the anon key; everything else needs the service role.
+create table if not exists portfolio_queue (
+  id           bigint generated always as identity primary key,
+  kind         text not null check (kind in ('race','build','memo','now','milestone')),
+  title        text not null,
+  hook         text,
+  detail       text,
+  date_label   text,
+  link         text,
+  meta         jsonb not null default '{}'::jsonb,
+  source       text not null default 'claude',      -- bot | claude | dashboard | sweep
+  status       text not null default 'suggested'
+               check (status in ('suggested','approved','live','rejected')),
+  created_at   timestamptz not null default now(),
+  published_at timestamptz
+);
+alter table portfolio_queue enable row level security;
+drop policy if exists "public read live" on portfolio_queue;
+create policy "public read live" on portfolio_queue
+  for select to anon using (status = 'live');

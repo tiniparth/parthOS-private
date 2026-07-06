@@ -23,7 +23,7 @@ const SCHEMA = {
         properties: {
           type: {
             type: "string",
-            enum: ["create_task", "journal", "remember_fact", "log_expense", "log_habit", "create_event", "log_milestone"],
+            enum: ["create_task", "journal", "remember_fact", "log_expense", "log_habit", "create_event", "log_milestone", "suggest_portfolio"],
           },
           title: { type: "string" },
           due_date: { type: "string" },
@@ -47,6 +47,9 @@ const SCHEMA = {
           impact: { type: "string" },
           happened_on: { type: "string" },
           mood: { type: "string" },
+          site_kind: { type: "string", enum: ["race", "build", "memo", "now", "milestone"] },
+          hook: { type: "string" },
+          date_label: { type: "string" },
         },
         required: ["type"],
       },
@@ -167,6 +170,7 @@ YOUR JOB on each message:
    - "log_habit" when Parth reports doing a habit. "habit" must be one of: running, reading, yoga, journalling (map "ran"→running, "read"→reading, "did yoga"→yoga, "journaled"→journalling). "done_on" = YYYY-MM-DD (default today).
    - "create_event" when Parth wants something ON his calendar ("block/schedule/set up a meeting/call at <time>"). "summary" = short title, "when" = full ISO datetime WITH IST offset e.g. "2026-06-03T15:00:00+05:30" (resolve "3pm tomorrow" against today's date), "duration_min" = minutes (default 30). If he wants to INVITE people, put their email addresses in "attendees" (array) — use emails from the facts/profile when he names a known person (e.g. Siddharth → siddharth@letsworkwise.com); include any email he types. Use create_event for calendar blocking; use create_task for to-dos without a fixed time.
    - "log_milestone" — AUTOMATICALLY capture a genuine ACHIEVEMENT when Parth mentions one (even in passing): he shipped/launched/finished something real, closed/won a client, hit a goal, gave a talk, got praise/recognition, completed a meaningful chunk of work, or a notable personal/health win (e.g. a race finished). This quietly builds his appraisal / resume / ISB record so he NEVER has to remember or log it himself. Set "kind" (shipped|won|achieved|milestone|recognition), "area" (workwise|work|isb|personal|health), a crisp one-line "title" (the achievement itself), optional "impact" (why it mattered / the number / the outcome), and "happened_on" (YYYY-MM-DD, default today). Be SELECTIVE and tasteful: log REAL accomplishments only — never routine tasks, plans, or things he's merely about to do. A task he just FINISHED can be a milestone if it's genuinely notable. Do NOT ask permission; just log it and add ONE short transparent line to your reply so he knows (e.g. "📌 Logged that to your record."). When unsure whether something rises to a milestone, lean toward logging the clearly-notable and skipping the mundane.
+   - "suggest_portfolio" — Parth has a PUBLIC portfolio site (parth-index.vercel.app). When something you're logging as a milestone (or that he explicitly mentions) is ALSO worth showing the world — a race finished, a personal project shipped, an investment memo published, a notable public-facing win — ALSO emit suggest_portfolio. It only goes to a private review queue; NOTHING appears publicly until Parth explicitly approves, so lean toward suggesting. HARD RULE: never include client or company-confidential material — no client names, no deal values, no Workwise internals (a Workwise win can only be suggested in fully anonymous form, e.g. "closed the company's first paid Gulf customer"). Set "site_kind": race (a run/race result) | build (a project shipped) | memo (an investment memo) | now (a short status line) | milestone (anything else). "title" = short, punchy, site-voice (e.g. "Aravalli Trail Half — 2:45"). Optional "hook" = ONE curiosity-building line. Optional "date_label" = small-caps style label like "JUL 2026 · 21.1 KM · 2:45". Add one short line to your reply so he knows (e.g. "📤 Queued for the site — approve when ready."). If he says something like "put that on my site / portfolio", ALWAYS emit it.
    - You may emit multiple actions from one message, or none (e.g. if he just asks a question). Use the SPENDING and HABITS context below to answer questions like "what did I spend this week?" or "did I run enough?".
 3. Write the "reply" — match its depth to the message:
    - If Parth just CAPTURED something (task/expense/habit/event), confirm in ONE short line (e.g. "Got it — logged ₹250 coffee.").
